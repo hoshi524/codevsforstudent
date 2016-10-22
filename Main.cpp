@@ -184,7 +184,7 @@ public:
       for (int j = 0; j < W; ++j) {
         if (blocks[i][j] != EMPTY) {
           value += S - blocks[i][j] - 1;
-          if (++x >= 100)
+          if (++x >= 120)
             value -= S;
         }
       }
@@ -236,7 +236,7 @@ void execute() {
 
   vector<Pack> np;
   for (int t = turn; t < N; ++t) {
-    Pack p = packs[t];
+    Pack p(packs[t]);
     myObstacle -= p.fill(myObstacle);
     np.push_back(p);
   }
@@ -245,7 +245,7 @@ void execute() {
   vector<vector<Field>> search(depth, vector<Field>());
   search[0].push_back(myField);
   for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
-    for (int j = 0, js = min(80, (int)search[i].size()); j < js; ++j) {
+    for (int j = 0, js = min(400, (int)search[i].size()); j < js; ++j) {
       vector<Field> x = search[i][j].child(np[i]);
       for (int k = 0; k < x.size(); ++k)
         x[k].prev = j;
