@@ -9,6 +9,8 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 10;
+static const int dx[4] = {1, 1, 0, 1};
+static const int dy[4] = {0, 1, 1, -1};
 
 class Pack {
  public:
@@ -31,7 +33,7 @@ class Pack {
     return Pack(blocks);
   }
 
-  int fill(int obstacle) {
+  int fill(const int obstacle) {
     if (obstacle == 0) return 0;
     int x = 0;
     for (int i = 0; i < T; i++) {
@@ -83,7 +85,7 @@ class Field {
     cin >> endStr;
   }
 
-  void fall(int w, int v) {
+  void fall(const int w, const int v) {
     for (int h = H + T - 1; h >= 0; --h) {
       if (blocks[h][w] == EMPTY) {
         blocks[h][w] = v;
@@ -92,21 +94,22 @@ class Field {
     }
   }
 
-  bool in(int h, int w) { return 0 <= h && h < H + T && 0 <= w && w < W; }
+  inline bool in(const int h, const int w) {
+    return 0 <= h && h < H + T && 0 <= w && w < W;
+  }
 
-  bool next(const Pack &p, int w) {
+  bool next(const Pack &p, const int w) {
     for (int i = T - 1; i >= 0; --i) {
       for (int j = 0; j < T; ++j) {
         int v = p.blocks[i][j];
         if (v != EMPTY) fall(w + j, v);
       }
     }
-    int dx[4] = {1, 1, 0, 1};
-    int dy[4] = {0, 1, 1, -1};
+    int del[H + T][W];
     chain = 0;
     while (true) {
       int d = 1;
-      vector<vector<int>> del(H + T, vector<int>(W, 0));
+      memset(del, 0, sizeof(del));
       for (int i = 0; i < H + T; ++i) {
         for (int j = 0; j < W; ++j) {
           if (blocks[i][j] != EMPTY) {
@@ -158,7 +161,7 @@ class Field {
     vector<Field> child;
     for (int r = 0; r < 4; ++r) {
       for (int w = 0; w < W - T + 1; ++w) {
-        Field c(*this);
+        Field c = *this;
         if (c.next(p, w)) {
           c.rot = r;
           c.pos = w;
@@ -173,7 +176,7 @@ class Field {
   void calcValue() {
     value = maxchain < target ? 0 : maxchain * 0xff;
     int x = 0;
-    for (int i = 0; i < H + T; ++i) {
+    for (int i = T; i < H + T; ++i) {
       for (int j = 0; j < W; ++j) {
         if (blocks[i][j] != EMPTY) {
           value += S - blocks[i][j] - 1;
@@ -211,7 +214,7 @@ void input() {
   int w, h, t, s, n;
   cin >> w >> h >> t >> s >> n;
   packs.clear();
-  for (int i = 0; i < N; i++) {
+  for (int i = 0; i < N; ++i) {
     Pack pack = Pack::inputFirst();
     packs.push_back(pack);
   }
@@ -228,7 +231,7 @@ void execute() {
 
   vector<Pack> np;
   for (int t = turn; t < N; ++t) {
-    Pack p(packs[t]);
+    Pack p = packs[t];
     myObstacle -= p.fill(myObstacle);
     np.push_back(p);
   }
