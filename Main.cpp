@@ -4,6 +4,7 @@ using namespace std;
 static const int W = 10;
 static const int H = 16;
 static const int T = 3;
+static const int HT = H + T;
 static const int S = 10;
 static const int N = 500;
 static const int EMPTY = 0;
@@ -14,30 +15,31 @@ static const int dy[4] = {0, 1, 1, -1};
 
 class Pack {
  public:
-  vector<vector<int>> blocks;
+  int blocks[T][T];
 
-  Pack(vector<vector<int>> blocks) : blocks(blocks) {}
-  Pack(const Pack &p) : blocks(p.blocks) {}
+  Pack() {}
+  Pack(const int b[T][T]) { memcpy(blocks, b, sizeof(blocks)); }
+  Pack(const Pack &p) { memcpy(blocks, p.blocks, sizeof(blocks)); }
 
   static Pack inputFirst() {
-    vector<vector<int>> blocks(T, vector<int>(T, 0));
-    for (int i = 0; i < T; i++) {
-      for (int j = 0; j < T; j++) {
+    int blocks[T][T];
+    for (int i = 0; i < T; ++i) {
+      for (int j = 0; j < T; ++j) {
         int block;
         cin >> block;
         blocks[i][j] = block;
       }
     }
-    string endStr;
-    cin >> endStr;
+    string end;
+    cin >> end;
     return Pack(blocks);
   }
 
   int fill(const int obstacle) {
     if (obstacle == 0) return 0;
     int x = 0;
-    for (int i = 0; i < T; i++) {
-      for (int j = 0; j < T; j++) {
+    for (int i = 0; i < T; ++i) {
+      for (int j = 0; j < T; ++j) {
         if (blocks[i][j] == EMPTY) {
           blocks[i][j] = OBSTACLE;
           if (++x >= obstacle) return x;
@@ -48,9 +50,10 @@ class Pack {
   }
 
   void rotate() {
-    vector<vector<int>> tmp = blocks;
-    for (int i = 0; i < T; i++) {
-      for (int j = 0; j < T; j++) {
+    int tmp[T][T];
+    memcpy(tmp, blocks, sizeof(blocks));
+    for (int i = 0; i < T; ++i) {
+      for (int j = 0; j < T; ++j) {
         blocks[j][T - 1 - i] = tmp[i][j];
       }
     }
@@ -59,34 +62,33 @@ class Pack {
 
 class Field {
  public:
-  vector<vector<int>> blocks;
-  int pos, rot, chain, maxchain, value, prev;
+  int blocks[HT][W], pos, rot, chain, maxchain, value, prev;
 
-  Field()
-      : blocks(vector<vector<int>>(H + T, vector<int>(W, 0))), maxchain(0) {}
+  Field() : maxchain(0) { memset(blocks, 0, sizeof(blocks)); }
   Field(const Field &x)
-      : blocks(x.blocks),
-        pos(x.pos),
+      : pos(x.pos),
         rot(x.rot),
         chain(x.chain),
         maxchain(x.maxchain),
         value(x.value),
-        prev(x.prev) {}
+        prev(x.prev) {
+    memcpy(blocks, x.blocks, sizeof(blocks));
+  }
 
   void input() {
-    for (int i = 0; i < H; i++) {
-      for (int j = 0; j < W; j++) {
+    for (int i = T; i < HT; ++i) {
+      for (int j = 0; j < W; ++j) {
         int block;
         cin >> block;
-        blocks[i + T][j] = block;
+        blocks[i][j] = block;
       }
     }
-    string endStr;
-    cin >> endStr;
+    string end;
+    cin >> end;
   }
 
   void fall(const int w, const int v) {
-    for (int h = H + T - 1; h >= 0; --h) {
+    for (int h = HT - 1; h >= 0; --h) {
       if (blocks[h][w] == EMPTY) {
         blocks[h][w] = v;
         return;
@@ -95,7 +97,7 @@ class Field {
   }
 
   inline bool in(const int h, const int w) {
-    return 0 <= h && h < H + T && 0 <= w && w < W;
+    return 0 <= h && h < HT && 0 <= w && w < W;
   }
 
   bool next(const Pack &p, const int w) {
@@ -110,7 +112,7 @@ class Field {
     while (true) {
       int d = 1;
       memset(del, 0, sizeof(del));
-      for (int i = 0; i < H + T; ++i) {
+      for (int i = 0; i < HT; ++i) {
         for (int j = 0; j < W; ++j) {
           if (blocks[i][j] != EMPTY) {
             for (int k = 0; k < 4; ++k) {
@@ -136,7 +138,7 @@ class Field {
       if (d) break;
       ++chain;
       for (int j = 0; j < W; ++j) {
-        for (int i = H + T - 1, k = -1; i >= 0; --i) {
+        for (int i = HT - 1, k = -1; i >= 0; --i) {
           if (blocks[i][j] == EMPTY) break;
           if (del[i][j]) {
             blocks[i][j] = EMPTY;
@@ -176,7 +178,7 @@ class Field {
   void calcValue() {
     value = maxchain < target ? 0 : maxchain * 0xff;
     int x = 0;
-    for (int i = T; i < H + T; ++i) {
+    for (int i = T; i < HT; ++i) {
       for (int j = 0; j < W; ++j) {
         if (blocks[i][j] != EMPTY) {
           value += S - blocks[i][j] - 1;
@@ -204,7 +206,7 @@ bool operator<(const Field &left, const Field &right) {
 namespace State {
 int turn;
 int time;
-vector<Pack> packs;
+Pack packs[N];
 Field myField;
 Field opField;
 int myObstacle;
@@ -213,10 +215,8 @@ int opObstacle;
 void input() {
   int w, h, t, s, n;
   cin >> w >> h >> t >> s >> n;
-  packs.clear();
   for (int i = 0; i < N; ++i) {
-    Pack pack = Pack::inputFirst();
-    packs.push_back(pack);
+    packs[i] = Pack::inputFirst();
   }
   myField = Field();
   opField = Field();
@@ -229,14 +229,13 @@ void execute() {
   cin >> opObstacle;
   opField.input();
 
-  vector<Pack> np;
+  Pack np[N - turn];
   for (int t = turn; t < N; ++t) {
-    Pack p = packs[t];
-    myObstacle -= p.fill(myObstacle);
-    np.push_back(p);
+    np[t - turn] = packs[t];
+    if (myObstacle > 0) myObstacle -= np[t - turn].fill(myObstacle);
   }
 
-  const int depth = 5;
+  const int depth = 10;
   vector<vector<Field>> search(depth, vector<Field>());
   search[0].push_back(myField);
   for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
