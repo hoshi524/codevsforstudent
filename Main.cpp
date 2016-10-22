@@ -11,7 +11,7 @@ static const int OBSTACLE = S + 1;
 static const int target = 10;
 
 class Pack {
-public:
+ public:
   vector<vector<int>> blocks;
 
   Pack(vector<vector<int>> blocks) : blocks(blocks) {}
@@ -32,8 +32,7 @@ public:
   }
 
   int fill(int obstacle) {
-    if (obstacle == 0)
-      return 0;
+    if (obstacle == 0) return 0;
     int x = 0;
     for (int i = 0; i < T; i++) {
       for (int j = 0; j < T; j++) {
@@ -59,15 +58,20 @@ public:
 };
 
 class Field {
-public:
+ public:
   vector<vector<int>> blocks;
   int pos, rot, chain, maxchain, value, prev;
 
   Field()
       : blocks(vector<vector<int>>(H + T, vector<int>(W, 0))), maxchain(0) {}
   Field(const Field &x)
-      : blocks(x.blocks), pos(x.pos), rot(x.rot), chain(x.chain),
-        maxchain(x.maxchain), value(x.value), prev(x.prev) {}
+      : blocks(x.blocks),
+        pos(x.pos),
+        rot(x.rot),
+        chain(x.chain),
+        maxchain(x.maxchain),
+        value(x.value),
+        prev(x.prev) {}
 
   void input() {
     for (int i = 0; i < H; i++) {
@@ -96,8 +100,7 @@ public:
     for (int i = T - 1; i >= 0; --i) {
       for (int j = 0; j < T; ++j) {
         int v = pack.blocks[i][j];
-        if (v != EMPTY)
-          fall(w + j, v);
+        if (v != EMPTY) fall(w + j, v);
       }
     }
     int dx[4] = {1, 1, 0, 1};
@@ -116,8 +119,7 @@ public:
                    a += dy[k], b += dx[k]) {
                 sum += blocks[a][b];
               }
-              if (sum != S)
-                continue;
+              if (sum != S) continue;
               sum = 0;
               d = 0;
               for (int a = i, b = j;
@@ -130,17 +132,14 @@ public:
           }
         }
       }
-      if (d)
-        break;
+      if (d) break;
       ++chain;
       for (int j = 0; j < W; ++j) {
         for (int i = H + T - 1, k = -1; i >= 0; --i) {
-          if (blocks[i][j] == EMPTY)
-            break;
+          if (blocks[i][j] == EMPTY) break;
           if (del[i][j]) {
             blocks[i][j] = EMPTY;
-            if (k == -1)
-              k = i;
+            if (k == -1) k = i;
           } else if (k != -1) {
             blocks[k][j] = blocks[i][j];
             blocks[i][j] = EMPTY;
@@ -150,11 +149,9 @@ public:
       }
     }
     for (int i = 0; i < W; ++i) {
-      if (blocks[T - 1][i] != EMPTY)
-        return false;
+      if (blocks[T - 1][i] != EMPTY) return false;
     }
-    if (maxchain < chain)
-      maxchain = chain;
+    if (maxchain < chain) maxchain = chain;
     calcValue();
     return true;
   }
@@ -177,15 +174,13 @@ public:
 
   void calcValue() {
     value = 0;
-    if (maxchain >= target)
-      value = maxchain * 0xff;
+    if (maxchain >= target) value = maxchain * 0xff;
     int x = 0;
     for (int i = 0; i < H + T; ++i) {
       for (int j = 0; j < W; ++j) {
         if (blocks[i][j] != EMPTY) {
           value += S - blocks[i][j] - 1;
-          if (++x >= 120)
-            value -= S;
+          if (++x >= 120) value -= S;
         }
       }
     }
@@ -245,10 +240,9 @@ void execute() {
   vector<vector<Field>> search(depth, vector<Field>());
   search[0].push_back(myField);
   for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
-    for (int j = 0, js = min(400, (int)search[i].size()); j < js; ++j) {
+    for (int j = 0, js = min(200, (int)search[i].size()); j < js; ++j) {
       vector<Field> x = search[i][j].child(np[i]);
-      for (int k = 0; k < x.size(); ++k)
-        x[k].prev = j;
+      for (int k = 0; k < x.size(); ++k) x[k].prev = j;
       search[i + 1].insert(search[i + 1].end(), x.begin(), x.end());
     }
     sort(search[i + 1].begin(), search[i + 1].end());
@@ -256,8 +250,7 @@ void execute() {
 
   for (int i = depth - 1, index = -1; i > 0; --i) {
     if (index == -1) {
-      if (search[i].size() > 0)
-        index = 0;
+      if (search[i].size() > 0) index = 0;
     } else {
       index = search[i + 1][index].prev;
     }
