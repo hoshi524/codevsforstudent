@@ -7,7 +7,8 @@ static const int T = 3;
 static const int S = 10;
 static const int N = 500;
 static const int EMPTY = 0;
-static const int OBSTACLE = 11;
+static const int OBSTACLE = S + 1;
+static const int target = 10;
 
 class Pack {
 public:
@@ -60,10 +61,13 @@ public:
 class Field {
 public:
   vector<vector<int>> blocks;
-  int pos, rot;
+  int pos, rot, chain, maxchain, value, prev;
 
-  Field() : blocks(vector<vector<int>>(H + T, vector<int>(W, 0))) {}
-  Field(const Field &x) : blocks(x.blocks), pos(x.pos), rot(x.rot) {}
+  Field()
+      : blocks(vector<vector<int>>(H + T, vector<int>(W, 0))), maxchain(0) {}
+  Field(const Field &x)
+      : blocks(x.blocks), pos(x.pos), rot(x.rot), chain(x.chain),
+        maxchain(x.maxchain), value(x.value), prev(x.prev) {}
 
   void input() {
     for (int i = 0; i < H; i++) {
@@ -98,6 +102,7 @@ public:
     }
     int dx[4] = {1, 1, 0, 1};
     int dy[4] = {0, 1, 1, -1};
+    chain = 0;
     while (true) {
       int d = 1;
       vector<vector<int>> del(H + T, vector<int>(W, 0));
@@ -114,6 +119,7 @@ public:
               if (sum != S)
                 continue;
               sum = 0;
+              d = 0;
               for (int a = i, b = j;
                    in(a, b) && blocks[a][b] != EMPTY && sum < S;
                    a += dy[k], b += dx[k]) {
@@ -126,6 +132,7 @@ public:
       }
       if (d)
         break;
+      ++chain;
       for (int j = 0; j < W; ++j) {
         for (int i = H + T - 1, k = -1; i >= 0; --i) {
           if (blocks[i][j] == EMPTY)
@@ -146,6 +153,9 @@ public:
       if (blocks[T - 1][i] != EMPTY)
         return false;
     }
+    if (maxchain < chain)
+      maxchain = chain;
+    calcValue();
     return true;
   }
 
@@ -164,7 +174,37 @@ public:
     }
     return child;
   }
+
+  void calcValue() {
+    value = 0;
+    if (maxchain >= target)
+      value = maxchain * 0xff;
+    int x = 0;
+    for (int i = 0; i < H + T; ++i) {
+      for (int j = 0; j < W; ++j) {
+        if (blocks[i][j] != EMPTY) {
+          value += S - blocks[i][j] - 1;
+          if (++x >= 100)
+            value -= S;
+        }
+      }
+    }
+  }
+
+  void show() {
+    for (int i = 0; i < H; ++i) {
+      for (int j = 0; j < W; ++j) {
+        cerr << blocks[i + T][j] << " ";
+      }
+      cerr << endl;
+    }
+    cerr << endl;
+  }
 };
+
+bool operator<(const Field &left, const Field &right) {
+  return left.value > right.value;
+}
 
 namespace State {
 int turn;
@@ -201,11 +241,34 @@ void execute() {
     np.push_back(p);
   }
 
-  vector<Field> child = myField.child(np[0]);
-  if (child.size() > 0) {
-    cout << child[0].pos << " " << child[0].rot << endl;
-  } else {
-    cout << "9 9\n";
+  const int depth = 5;
+  vector<vector<Field>> search(depth, vector<Field>());
+  search[0].push_back(myField);
+  for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
+    for (int j = 0, js = min(80, (int)search[i].size()); j < js; ++j) {
+      vector<Field> x = search[i][j].child(np[i]);
+      for (int k = 0; k < x.size(); ++k)
+        x[k].prev = j;
+      search[i + 1].insert(search[i + 1].end(), x.begin(), x.end());
+    }
+    sort(search[i + 1].begin(), search[i + 1].end());
+  }
+
+  for (int i = depth - 1, index = -1; i > 0; --i) {
+    if (index == -1) {
+      if (search[i].size() > 0)
+        index = 0;
+    } else {
+      index = search[i + 1][index].prev;
+    }
+    if (i == 1) {
+      if (index == -1) {
+        cout << "9 9\n";
+      } else {
+        cout << search[i][index].pos << " " << search[i][index].rot << endl;
+      }
+      break;
+    }
   }
   cout.flush();
 }

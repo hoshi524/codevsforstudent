@@ -1,5 +1,5 @@
 sample/
 codevsforstudent/
 .project
-*.sh
 *.jnlp
+*.out
