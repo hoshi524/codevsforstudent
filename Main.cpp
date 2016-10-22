@@ -12,10 +12,10 @@ static const int OBSTACLE = S + 1;
 static const int target = 10;
 static const int dx[4] = {1, 1, 0, 1};
 static const int dy[4] = {0, 1, 1, -1};
-// static const int depth = 10; // prod
-// static const int width = 200; // prod
-static const int depth = 5;    // test
-static const int width = 100;  // test
+static const int depth = 10;   // prod
+static const int width = 200;  // prod
+// static const int depth = 5;    // test
+// static const int width = 100;  // test
 
 class Pack {
  public:
@@ -66,16 +66,11 @@ class Pack {
 
 class Field {
  public:
-  int blocks[HT][W], pos, rot, chain, maxchain, value, prev;
+  int blocks[HT][W], pos, rot, chain, value, prev;
 
-  Field() : maxchain(0) { memset(blocks, 0, sizeof(blocks)); }
+  Field() { memset(blocks, 0, sizeof(blocks)); }
   Field(const Field &x)
-      : pos(x.pos),
-        rot(x.rot),
-        chain(x.chain),
-        maxchain(x.maxchain),
-        value(x.value),
-        prev(x.prev) {
+      : pos(x.pos), rot(x.rot), chain(x.chain), value(x.value), prev(x.prev) {
     memcpy(blocks, x.blocks, sizeof(blocks));
   }
 
@@ -152,8 +147,7 @@ class Field {
       if (blocks[T - 1][i] != EMPTY) return false;
     }
     {  // value
-      if (maxchain < chain) maxchain = chain;
-      value = maxchain < target ? 0 : maxchain * 0xff;
+      value = 0;
       int x = 0;
       for (int i = T; i < HT; ++i) {
         for (int j = 0; j < W; ++j) {
@@ -223,6 +217,10 @@ void execute() {
     if (myObstacle > 0) myObstacle -= np[t - turn].fill(myObstacle);
   }
 
+  const int mini = -1000000;
+  int value = mini;
+  int d = -1;
+  Field best;
   vector<Field> search[depth];
   search[0].push_back(myField);
   for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
@@ -235,6 +233,13 @@ void execute() {
             c.pos = w;
             c.prev = j;
             search[i + 1].push_back(c);
+
+            int tv = c.value + (c.chain < target ? 0 : c.chain * 0xff);
+            if (value < tv) {
+              value = tv;
+              d = i;
+              best = c;
+            }
           }
         }
         np[i].rotate();
@@ -243,21 +248,10 @@ void execute() {
     sort(search[i + 1].begin(), search[i + 1].end());
   }
 
-  for (int i = depth - 1, index = -1; i > 0; --i) {
-    if (index == -1) {
-      if (search[i].size() > 0) index = 0;
-    } else {
-      index = search[i + 1][index].prev;
-    }
-    if (i == 1) {
-      if (index == -1) {
-        cout << "9 9\n";
-      } else {
-        cout << search[i][index].pos << " " << search[i][index].rot << endl;
-      }
-      break;
-    }
+  while (d > 0) {
+    best = search[d--][best.prev];
   }
+  cout << best.pos << " " << best.rot << endl;
   cout.flush();
 }
 };
