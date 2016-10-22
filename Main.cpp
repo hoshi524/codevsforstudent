@@ -12,6 +12,10 @@ static const int OBSTACLE = S + 1;
 static const int target = 10;
 static const int dx[4] = {1, 1, 0, 1};
 static const int dy[4] = {0, 1, 1, -1};
+// static const int depth = 10; // prod
+// static const int width = 200; // prod
+static const int depth = 5;    // test
+static const int width = 100;  // test
 
 class Pack {
  public:
@@ -87,50 +91,43 @@ class Field {
     cin >> end;
   }
 
-  void fall(const int w, const int v) {
-    for (int h = HT - 1; h >= 0; --h) {
-      if (blocks[h][w] == EMPTY) {
-        blocks[h][w] = v;
-        return;
-      }
-    }
-  }
-
   inline bool in(const int h, const int w) {
     return 0 <= h && h < HT && 0 <= w && w < W;
   }
 
   bool next(const Pack &p, const int w) {
-    for (int i = T - 1; i >= 0; --i) {
-      for (int j = 0; j < T; ++j) {
-        int v = p.blocks[i][j];
-        if (v != EMPTY) fall(w + j, v);
+    for (int j = 0; j < T; ++j) {
+      int h = HT - 1;
+      for (; h >= 0; --h) {
+        if (blocks[h][w + j] == EMPTY) break;
+      }
+      for (int i = T - 1; i >= 0; --i) {
+        const int v = p.blocks[i][j];
+        if (v != EMPTY) blocks[h--][w + j] = v;
       }
     }
-    int del[H + T][W];
+
+    bool del[H + T][W];
     chain = 0;
     while (true) {
-      int d = 1;
-      memset(del, 0, sizeof(del));
-      for (int i = 0; i < HT; ++i) {
-        for (int j = 0; j < W; ++j) {
-          if (blocks[i][j] != EMPTY) {
-            for (int k = 0; k < 4; ++k) {
-              int sum = 0;
-              for (int a = i, b = j;
-                   in(a, b) && blocks[a][b] != EMPTY && sum < S;
-                   a += dy[k], b += dx[k]) {
-                sum += blocks[a][b];
-              }
-              if (sum != S) continue;
-              sum = 0;
-              d = 0;
-              for (int a = i, b = j;
-                   in(a, b) && blocks[a][b] != EMPTY && sum < S;
-                   a += dy[k], b += dx[k]) {
-                sum += blocks[a][b];
-                del[a][b] = 1;
-              }
+      bool d = true;
+      memset(del, false, sizeof(del));
+      for (int j = 0; j < W; ++j) {
+        for (int i = HT - 1; i >= 0 && blocks[i][j] != EMPTY; --i) {
+          if (blocks[i][j] == OBSTACLE) continue;
+          for (int k = 0; k < 4; ++k) {
+            int sum = 0;
+            for (int a = i, b = j; in(a, b) && blocks[a][b] != EMPTY && sum < S;
+                 a += dy[k], b += dx[k]) {
+              sum += blocks[a][b];
+            }
+            if (sum != S) continue;
+            sum = 0;
+            d = false;
+            for (int a = i, b = j; in(a, b) && blocks[a][b] != EMPTY && sum < S;
+                 a += dy[k], b += dx[k]) {
+              sum += blocks[a][b];
+              del[a][b] = true;
             }
           }
         }
@@ -138,8 +135,7 @@ class Field {
       if (d) break;
       ++chain;
       for (int j = 0; j < W; ++j) {
-        for (int i = HT - 1, k = -1; i >= 0; --i) {
-          if (blocks[i][j] == EMPTY) break;
+        for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j] != EMPTY; --i) {
           if (del[i][j]) {
             blocks[i][j] = EMPTY;
             if (k == -1) k = i;
@@ -151,41 +147,24 @@ class Field {
         }
       }
     }
+
     for (int i = 0; i < W; ++i) {
       if (blocks[T - 1][i] != EMPTY) return false;
     }
-    if (maxchain < chain) maxchain = chain;
-    calcValue();
+    {  // value
+      if (maxchain < chain) maxchain = chain;
+      value = maxchain < target ? 0 : maxchain * 0xff;
+      int x = 0;
+      for (int i = T; i < HT; ++i) {
+        for (int j = 0; j < W; ++j) {
+          if (blocks[i][j] != EMPTY) {
+            value += S - blocks[i][j] - 1;
+            if (++x >= 120) value -= S;
+          }
+        }
+      }
+    }
     return true;
-  }
-
-  vector<Field> child(Pack &p) {
-    vector<Field> child;
-    for (int r = 0; r < 4; ++r) {
-      for (int w = 0; w < W - T + 1; ++w) {
-        Field c = *this;
-        if (c.next(p, w)) {
-          c.rot = r;
-          c.pos = w;
-          child.push_back(c);
-        }
-      }
-      p.rotate();
-    }
-    return child;
-  }
-
-  void calcValue() {
-    value = maxchain < target ? 0 : maxchain * 0xff;
-    int x = 0;
-    for (int i = T; i < HT; ++i) {
-      for (int j = 0; j < W; ++j) {
-        if (blocks[i][j] != EMPTY) {
-          value += S - blocks[i][j] - 1;
-          if (++x >= 120) value -= S;
-        }
-      }
-    }
   }
 
   void show() {
@@ -201,6 +180,15 @@ class Field {
 
 bool operator<(const Field &left, const Field &right) {
   return left.value > right.value;
+}
+
+bool operator!=(const Field &left, const Field &right) {
+  for (int i = 0; i < HT; ++i) {
+    for (int j = 0; j < W; ++j) {
+      if (left.blocks[i][j] != right.blocks[i][j]) return true;
+    }
+  }
+  return false;
 }
 
 namespace State {
@@ -235,14 +223,22 @@ void execute() {
     if (myObstacle > 0) myObstacle -= np[t - turn].fill(myObstacle);
   }
 
-  const int depth = 10;
-  vector<vector<Field>> search(depth, vector<Field>());
+  vector<Field> search[depth];
   search[0].push_back(myField);
   for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
-    for (int j = 0, js = min(200, (int)search[i].size()); j < js; ++j) {
-      vector<Field> x = search[i][j].child(np[i]);
-      for (int k = 0; k < x.size(); ++k) x[k].prev = j;
-      search[i + 1].insert(search[i + 1].end(), x.begin(), x.end());
+    for (int j = 0, js = min(width, (int)search[i].size()); j < js; ++j) {
+      for (int r = 0; r < 4; ++r) {
+        for (int w = 0; w < W - T + 1; ++w) {
+          Field c = search[i][j];
+          if (c.next(np[i], w)) {
+            c.rot = r;
+            c.pos = w;
+            c.prev = j;
+            search[i + 1].push_back(c);
+          }
+        }
+        np[i].rotate();
+      }
     }
     sort(search[i + 1].begin(), search[i + 1].end());
   }
