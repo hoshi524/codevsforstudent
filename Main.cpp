@@ -38,9 +38,7 @@ class Pack {
       for (int j = 0; j < T; j++) {
         if (blocks[i][j] == EMPTY) {
           blocks[i][j] = OBSTACLE;
-          if (++x >= obstacle) {
-            return x;
-          }
+          if (++x >= obstacle) return x;
         }
       }
     }
@@ -96,10 +94,10 @@ class Field {
 
   bool in(int h, int w) { return 0 <= h && h < H + T && 0 <= w && w < W; }
 
-  bool next(Pack pack, int w) {
+  bool next(const Pack &p, int w) {
     for (int i = T - 1; i >= 0; --i) {
       for (int j = 0; j < T; ++j) {
-        int v = pack.blocks[i][j];
+        int v = p.blocks[i][j];
         if (v != EMPTY) fall(w + j, v);
       }
     }
@@ -156,25 +154,24 @@ class Field {
     return true;
   }
 
-  vector<Field> child(Pack pack) {
+  vector<Field> child(Pack &p) {
     vector<Field> child;
     for (int r = 0; r < 4; ++r) {
       for (int w = 0; w < W - T + 1; ++w) {
         Field c(*this);
-        if (c.next(pack, w)) {
+        if (c.next(p, w)) {
           c.rot = r;
           c.pos = w;
           child.push_back(c);
         }
       }
-      pack.rotate();
+      p.rotate();
     }
     return child;
   }
 
   void calcValue() {
-    value = 0;
-    if (maxchain >= target) value = maxchain * 0xff;
+    value = maxchain < target ? 0 : maxchain * 0xff;
     int x = 0;
     for (int i = 0; i < H + T; ++i) {
       for (int j = 0; j < W; ++j) {

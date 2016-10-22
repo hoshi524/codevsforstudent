@@ -1,6 +1,5 @@
 sample/
 codevsforstudent/
 .project
-*.jnlp
 *.out
 .vscode/
