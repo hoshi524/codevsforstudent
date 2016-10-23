@@ -1,8 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-typedef long long ll;
-
 static const int W = 10;
 static const int H = 16;
 static const int T = 3;
@@ -127,7 +125,7 @@ class Field {
     }
 
     bool del[HT][W];
-    ll score = 0;
+    int score = 0;
     double chain = 1;
     while (true) {
       bool end = true;
@@ -143,7 +141,7 @@ class Field {
         setDelete(end, del, i, W - 1, -1, -1);
       }
       if (end) break;
-      ll e = 0;
+      int e = 0;
       for (int j = 0; j < W; ++j) {
         for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j] != EMPTY; --i) {
           if (del[i][j]) {
@@ -159,7 +157,7 @@ class Field {
       }
       chain *= 1.3;
       e /= 2;
-      score += (ll)chain * e;
+      score += (int)chain * e;
     }
     obs = score / 5;
 
