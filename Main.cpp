@@ -12,10 +12,10 @@ static const int OBSTACLE = S + 1;
 static const int target = 10;
 static const int dx[4] = {1, 1, 0, 1};
 static const int dy[4] = {0, 1, 1, -1};
-static const int depth = 10;   // prod
-static const int width = 200;  // prod
-// static const int depth = 5;    // test
-// static const int width = 100;  // test
+// static const int depth = 10;   // prod
+// static const int width = 200;  // prod
+static const int depth = 5;    // test
+static const int width = 100;  // test
 
 class Pack {
  public:
@@ -234,7 +234,8 @@ void execute() {
             c.prev = j;
             search[i + 1].push_back(c);
 
-            int tv = c.value + (c.chain < target ? 0 : c.chain * 0xff);
+            int tv = c.value;
+            if (c.chain >= target) tv += (c.chain * 10 - i) * 0xff;
             if (value < tv) {
               value = tv;
               d = i;
