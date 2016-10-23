@@ -11,10 +11,10 @@ static const int S = 10;
 static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
-// static const int depth = 10;   // prod
-// static const int width = 300;  // prod
-static const int depth = 5;    // test
-static const int width = 100;  // test
+static const int depth = 10;   // prod
+static const int width = 300;  // prod
+// static const int depth = 10;   // test
+// static const int width = 100;  // test
 
 class Pack {
  public:
@@ -253,7 +253,8 @@ void execute() {
             c.prev = j;
             search[i + 1].push_back(c);
 
-            int tv = c.value + (((c.obs << 4) - i) << 10);
+            int tv = c.value + (min(c.obs, 100) << 16) - (i << 12) +
+                     (max(c.obs - 100, 0) << 8);
             if (value < tv) {
               value = tv;
               d = i;
