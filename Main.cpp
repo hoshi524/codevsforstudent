@@ -191,7 +191,7 @@ class Field {
       for (int i = T; i < HT; ++i) {
         for (int j = 0; j < W; ++j) {
           if (blocks[i][j] != EMPTY) {
-            value += S - blocks[i][j] - 1;
+            value += S - blocks[i][j];
             if (++x >= 120) value -= S;
           }
         }
