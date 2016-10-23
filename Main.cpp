@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+typedef long long ll;
+
 static const int W = 10;
 static const int H = 16;
 static const int T = 3;
@@ -9,9 +11,6 @@ static const int S = 10;
 static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
-static const int target = 10;
-static const int dx[4] = {1, 1, 0, 1};
-static const int dy[4] = {0, 1, 1, -1};
 // static const int depth = 10;   // prod
 // static const int width = 300;  // prod
 static const int depth = 5;    // test
@@ -66,11 +65,11 @@ class Pack {
 
 class Field {
  public:
-  int blocks[HT][W], pos, rot, chain, value, prev;
+  int blocks[HT][W], pos, rot, obs, value, prev;
 
   Field() { memset(blocks, 0, sizeof(blocks)); }
   Field(const Field &x)
-      : pos(x.pos), rot(x.rot), chain(x.chain), value(x.value), prev(x.prev) {
+      : pos(x.pos), rot(x.rot), obs(x.obs), value(x.value), prev(x.prev) {
     memcpy(blocks, x.blocks, sizeof(blocks));
   }
 
@@ -127,7 +126,8 @@ class Field {
     }
 
     bool del[HT][W];
-    chain = 0;
+    ll score = 0;
+    double chain = 1;
     while (true) {
       bool end = true;
       memset(del, false, sizeof(del));
@@ -142,10 +142,11 @@ class Field {
         setDelete(end, del, i, W - 1, -1, -1);
       }
       if (end) break;
-      ++chain;
+      ll e = 0;
       for (int j = 0; j < W; ++j) {
         for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j] != EMPTY; --i) {
           if (del[i][j]) {
+            ++e;
             blocks[i][j] = EMPTY;
             if (k == -1) k = i;
           } else if (k != -1) {
@@ -155,7 +156,11 @@ class Field {
           }
         }
       }
+      chain *= 1.3;
+      e /= 2;
+      score += (ll)chain * e;
     }
+    obs = score / 5;
 
     for (int i = 0; i < W; ++i) {
       if (blocks[T - 1][i] != EMPTY) return false;
@@ -248,8 +253,7 @@ void execute() {
             c.prev = j;
             search[i + 1].push_back(c);
 
-            int tv = c.value;
-            if (c.chain >= target) tv += (c.chain * 10 - i) * 0xff;
+            int tv = c.value + (((c.obs << 4) - i) << 10);
             if (value < tv) {
               value = tv;
               d = i;
