@@ -13,7 +13,7 @@ static const int target = 10;
 static const int dx[4] = {1, 1, 0, 1};
 static const int dy[4] = {0, 1, 1, -1};
 // static const int depth = 10;   // prod
-// static const int width = 200;  // prod
+// static const int width = 300;  // prod
 static const int depth = 5;    // test
 static const int width = 100;  // test
 
@@ -90,6 +90,30 @@ class Field {
     return 0 <= h && h < HT && 0 <= w && w < W;
   }
 
+  inline void setDelete(bool &end, bool (&del)[HT][W], int i, int j,
+                        const int di, const int dj) {
+    for (int ki = i, kj = j, sum = 0; in(i, j); i += di, j += dj) {
+      if (blocks[i][j] == EMPTY || blocks[i][j] == OBSTACLE) {
+        ki = i + di;
+        kj = j + dj;
+        sum = 0;
+      } else {
+        sum += blocks[i][j];
+        while (sum > S) {
+          sum -= blocks[ki][kj];
+          ki += di;
+          kj += dj;
+        }
+        if (sum == S) {
+          end = false;
+          del[i][j] = true;
+          for (int pi = ki, pj = kj; i != pi || j != pj; pi += di, pj += dj)
+            del[pi][pj] = true;
+        }
+      }
+    }
+  }
+
   bool next(const Pack &p, const int w) {
     for (int j = 0; j < T; ++j) {
       int h = HT - 1;
@@ -102,32 +126,22 @@ class Field {
       }
     }
 
-    bool del[H + T][W];
+    bool del[HT][W];
     chain = 0;
     while (true) {
-      bool d = true;
+      bool end = true;
       memset(del, false, sizeof(del));
       for (int j = 0; j < W; ++j) {
-        for (int i = HT - 1; i >= 0 && blocks[i][j] != EMPTY; --i) {
-          if (blocks[i][j] == OBSTACLE) continue;
-          for (int k = 0; k < 4; ++k) {
-            int sum = 0;
-            for (int a = i, b = j; in(a, b) && blocks[a][b] != EMPTY && sum < S;
-                 a += dy[k], b += dx[k]) {
-              sum += blocks[a][b];
-            }
-            if (sum != S) continue;
-            sum = 0;
-            d = false;
-            for (int a = i, b = j; in(a, b) && blocks[a][b] != EMPTY && sum < S;
-                 a += dy[k], b += dx[k]) {
-              sum += blocks[a][b];
-              del[a][b] = true;
-            }
-          }
-        }
+        setDelete(end, del, HT - 1, j, -1, 0);
+        setDelete(end, del, HT - 1, j, -1, 1);
+        setDelete(end, del, HT - 1, j, -1, -1);
       }
-      if (d) break;
+      for (int i = 0; i < HT; ++i) {
+        setDelete(end, del, i, 0, 0, 1);
+        setDelete(end, del, i, 0, -1, 1);
+        setDelete(end, del, i, W - 1, -1, -1);
+      }
+      if (end) break;
       ++chain;
       for (int j = 0; j < W; ++j) {
         for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j] != EMPTY; --i) {
