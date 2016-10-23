@@ -11,10 +11,11 @@ static const int S = 10;
 static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
-static const int depth = 10;   // prod
-static const int width = 300;  // prod
-// static const int depth = 10;   // test
-// static const int width = 100;  // test
+static const int target = 60;
+// static const int depth = 10;   // prod
+// static const int width = 300;  // prod
+static const int depth = 10;   // test
+static const int width = 100;  // test
 
 class Pack {
  public:
@@ -236,8 +237,7 @@ void execute() {
     if (myObstacle > 0) myObstacle -= np[t - turn].fill(myObstacle);
   }
 
-  const int mini = -1000000;
-  int value = mini;
+  int value = INT_MIN;
   int d = -1;
   Field best;
   vector<Field> search[depth];
@@ -253,8 +253,8 @@ void execute() {
             c.prev = j;
             search[i + 1].push_back(c);
 
-            int tv = c.value + (min(c.obs, 100) << 16) - (i << 12) +
-                     (max(c.obs - 100, 0) << 8);
+            int tv = c.value + (min(c.obs, target) << 16) - (i << 12) +
+                     (max(c.obs - target, 0) << 8);
             if (value < tv) {
               value = tv;
               d = i;
