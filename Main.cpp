@@ -10,8 +10,8 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 60;
-// static const int depth = 12;   // prod
-// static const int width = 400;  // prod
+// static const int depth = 10;   // prod
+// static const int width = 1000;  // prod
 static const int depth = 10;   // test
 static const int width = 100;  // test
 
@@ -64,11 +64,10 @@ class Pack {
 
 class Field {
  public:
-  int blocks[HT][W], pos, rot, obs, value, prev;
+  int blocks[HT][W], pos, rot, obs, value;
 
   Field() { memset(blocks, 0, sizeof(blocks)); }
-  Field(const Field &x)
-      : pos(x.pos), rot(x.rot), obs(x.obs), value(x.value), prev(x.prev) {
+  Field(const Field &x) : pos(x.pos), rot(x.rot), obs(x.obs), value(x.value) {
     memcpy(blocks, x.blocks, sizeof(blocks));
   }
 
@@ -213,7 +212,7 @@ class Field {
 };
 
 bool operator<(const Field &left, const Field &right) {
-  return left.value > right.value;
+  return left.value < right.value;
 }
 
 bool operator!=(const Field &left, const Field &right) {
@@ -257,41 +256,38 @@ void execute() {
     if (myObstacle > 0) myObstacle -= np[t - turn].fill(myObstacle);
   }
 
-  int value = INT_MIN;
-  int d = -1;
-  Field best;
-  vector<Field> search[depth];
-  search[0].push_back(myField);
+  int value = INT_MIN, pos, rot;
+  priority_queue<Field> search[depth];
+  search[0].push(myField);
   for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
-    for (int j = 0, js = min(width, (int)search[i].size()); j < js; ++j) {
+    for (int j = 0; j < width && !search[i].empty(); ++j) {
+      Field field = search[i].top();
+      search[i].pop();
       for (int r = 0; r < 4; ++r) {
         for (int w = 0; w < W - T + 1; ++w) {
-          Field c = search[i][j];
+          Field c = field;
           if (c.next(np[i], w)) {
-            c.rot = r;
-            c.pos = w;
-            c.prev = j;
-            search[i + 1].push_back(c);
+            if (i == 0) {
+              c.rot = r;
+              c.pos = w;
+            }
+            search[i + 1].push(c);
 
             int tv = c.value + (min(c.obs, target) << 16) - (i << 12) +
                      (max(c.obs - target, 0) << 8);
             if (value < tv) {
               value = tv;
-              d = i;
-              best = c;
+              pos = c.pos;
+              rot = c.rot;
             }
           }
         }
         np[i].rotate();
       }
     }
-    sort(search[i + 1].begin(), search[i + 1].end());
   }
 
-  while (d > 0) {
-    best = search[d--][best.prev];
-  }
-  cout << best.pos << " " << best.rot << endl;
+  cout << pos << " " << rot << endl;
   cout.flush();
 }
 };
