@@ -10,8 +10,8 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 60;
-// static const int depth = 10;   // prod
-// static const int width = 300;  // prod
+// static const int depth = 12;   // prod
+// static const int width = 400;  // prod
 static const int depth = 10;   // test
 static const int width = 100;  // test
 
@@ -112,7 +112,24 @@ class Field {
     }
   }
 
+  inline void setCheck(bool (&check)[6][HT], const int i, const int j) {
+    check[0][j] = true;
+    check[3][i] = true;
+    if (HT - i - 1 <= j) {
+      check[1][j - (HT - i - 1)] = true;
+    } else {
+      check[4][i + j] = true;
+    }
+    if (HT - i - 1 < W - j) {
+      check[2][j + (HT - i - 1)] = true;
+    } else {
+      check[5][i + (W - j - 1)] = true;
+    }
+  }
+
   bool next(const Pack &p, const int w) {
+    bool check[6][HT];
+    memset(check, false, sizeof(check));
     for (int j = 0; j < T; ++j) {
       int h = HT - 1;
       for (; h >= 0; --h) {
@@ -120,7 +137,10 @@ class Field {
       }
       for (int i = T - 1; i >= 0; --i) {
         const int v = p.blocks[i][j];
-        if (v != EMPTY) blocks[h--][w + j] = v;
+        if (v != EMPTY) {
+          setCheck(check, h, w + j);
+          blocks[h--][w + j] = v;
+        }
       }
     }
 
@@ -131,16 +151,17 @@ class Field {
       bool end = true;
       memset(del, false, sizeof(del));
       for (int j = 0; j < W; ++j) {
-        setDelete(end, del, HT - 1, j, -1, 0);
-        setDelete(end, del, HT - 1, j, -1, 1);
-        setDelete(end, del, HT - 1, j, -1, -1);
+        if (check[0][j]) setDelete(end, del, HT - 1, j, -1, 0);
+        if (check[1][j]) setDelete(end, del, HT - 1, j, -1, 1);
+        if (check[2][j]) setDelete(end, del, HT - 1, j, -1, -1);
       }
       for (int i = 0; i < HT; ++i) {
-        setDelete(end, del, i, 0, 0, 1);
-        setDelete(end, del, i, 0, -1, 1);
-        setDelete(end, del, i, W - 1, -1, -1);
+        if (check[3][i]) setDelete(end, del, i, 0, 0, 1);
+        if (check[4][i]) setDelete(end, del, i, 0, -1, 1);
+        if (check[5][i]) setDelete(end, del, i, W - 1, -1, -1);
       }
       if (end) break;
+      memset(check, false, sizeof(check));
       int e = 0;
       for (int j = 0; j < W; ++j) {
         for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j] != EMPTY; --i) {
@@ -151,6 +172,7 @@ class Field {
           } else if (k != -1) {
             blocks[k][j] = blocks[i][j];
             blocks[i][j] = EMPTY;
+            setCheck(check, k, j);
             --k;
           }
         }
