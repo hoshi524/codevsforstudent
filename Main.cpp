@@ -23,7 +23,7 @@ class Pack {
   Pack(const int b[T][T]) { memcpy(blocks, b, sizeof(blocks)); }
   Pack(const Pack &p) { memcpy(blocks, p.blocks, sizeof(blocks)); }
 
-  static Pack inputFirst() {
+  static Pack input() {
     int blocks[T][T];
     for (int i = 0; i < T; ++i) {
       for (int j = 0; j < T; ++j) {
@@ -239,19 +239,22 @@ void input() {
   int w, h, t, s, n;
   cin >> w >> h >> t >> s >> n;
   for (int i = 0; i < N; ++i) {
-    packs[i] = Pack::inputFirst();
+    packs[i] = Pack::input();
   }
   myField = Field();
   opField = Field();
 }
 
-void execute() {
-  cin >> turn >> time;
+bool inputTurn() {
+  if (!(cin >> turn >> time)) return false;
   cin >> myObstacle;
   myField.input();
   cin >> opObstacle;
   opField.input();
+  return true;
+}
 
+void execute() {
   Pack np[N - turn];
   for (int t = turn; t < N; ++t) {
     np[t - turn] = packs[t];
@@ -288,18 +291,15 @@ void execute() {
       }
     }
   }
-
-  cout << pos << " " << rot << endl;
-  cout.flush();
+  printf("%d %d\n", pos, rot);
 }
 };
 
 int main() {
-  cout << "hoshi524" << endl;
-  cout.flush();
+  printf("hoshi524\n");
 
   State::input();
-  while (true) {
+  while (State::inputTurn()) {
     State::execute();
   }
 }
