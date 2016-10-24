@@ -21,7 +21,7 @@ class Pack {
 
   Pack() {}
   Pack(const int b[T][T]) { memcpy(blocks, b, sizeof(blocks)); }
-  Pack(const Pack &p) { memcpy(blocks, p.blocks, sizeof(blocks)); }
+  Pack(const Pack &p) { memcpy(this, &p, sizeof(p)); }
 
   static Pack input() {
     int blocks[T][T];
@@ -67,8 +67,8 @@ class Field {
   int blocks[HT][W], pos, rot, obs, value;
 
   Field() { memset(blocks, 0, sizeof(blocks)); }
-  Field(const Field &x) : pos(x.pos), rot(x.rot), obs(x.obs), value(x.value) {
-    memcpy(blocks, x.blocks, sizeof(blocks));
+  Field(const Field &x) {
+    memcpy(this, &x, sizeof(x));
   }
 
   void input() {
