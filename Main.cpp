@@ -87,8 +87,9 @@ class Field {
     return 0 <= h && h < HT && 0 <= w && w < W;
   }
 
-  inline void setDelete(bool &end, bool (&del)[HT][W], int i, int j,
-                        const int di, const int dj) {
+  inline int setDelete(bool &end, bool (&del)[HT][W], int i, int j,
+                       const int di, const int dj) {
+    int x = 0;
     for (int ki = i, kj = j, sum = 0; in(i, j); i += di, j += dj) {
       if (blocks[i][j] == EMPTY || blocks[i][j] == OBSTACLE) {
         ki = i + di;
@@ -103,12 +104,14 @@ class Field {
         }
         if (sum == S) {
           end = false;
+          x += 1 + max(abs(i - ki), abs(j - kj));
           del[i][j] = true;
           for (int pi = ki, pj = kj; i != pi || j != pj; pi += di, pj += dj)
             del[pi][pj] = true;
         }
       }
     }
+    return x;
   }
 
   inline void setCheck(bool (&check)[6][HT], const int i, const int j) {
@@ -147,25 +150,24 @@ class Field {
     int score = 0;
     double chain = 1;
     while (true) {
+      int e = 0;
       bool end = true;
       memset(del, false, sizeof(del));
       for (int j = 0; j < W; ++j) {
-        if (check[0][j]) setDelete(end, del, HT - 1, j, -1, 0);
-        if (check[1][j]) setDelete(end, del, HT - 1, j, -1, 1);
-        if (check[2][j]) setDelete(end, del, HT - 1, j, -1, -1);
+        if (check[0][j]) e += setDelete(end, del, HT - 1, j, -1, 0);
+        if (check[1][j]) e += setDelete(end, del, HT - 1, j, -1, 1);
+        if (check[2][j]) e += setDelete(end, del, HT - 1, j, -1, -1);
       }
       for (int i = 0; i < HT; ++i) {
-        if (check[3][i]) setDelete(end, del, i, 0, 0, 1);
-        if (check[4][i]) setDelete(end, del, i, 0, -1, 1);
-        if (check[5][i]) setDelete(end, del, i, W - 1, -1, -1);
+        if (check[3][i]) e += setDelete(end, del, i, 0, 0, 1);
+        if (check[4][i]) e += setDelete(end, del, i, 0, -1, 1);
+        if (check[5][i]) e += setDelete(end, del, i, W - 1, -1, -1);
       }
       if (end) break;
       memset(check, false, sizeof(check));
-      int e = 0;
       for (int j = 0; j < W; ++j) {
         for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j] != EMPTY; --i) {
           if (del[i][j]) {
-            ++e;
             blocks[i][j] = EMPTY;
             if (k == -1) k = i;
           } else if (k != -1) {
