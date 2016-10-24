@@ -139,7 +139,7 @@ class Field {
       }
       for (int i = T - 1; i >= 0; --i) {
         const int v = p.blocks[i][j];
-        if (v != EMPTY) {
+        if (v) {
           setCheck(check, h, w + j);
           blocks[h--][w + j] = v;
         }
@@ -166,7 +166,7 @@ class Field {
       if (end) break;
       memset(check, false, sizeof(check));
       for (int j = 0; j < W; ++j) {
-        for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j] != EMPTY; --i) {
+        for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j]; --i) {
           if (del[i][j]) {
             blocks[i][j] = EMPTY;
             if (k == -1) k = i;
@@ -185,14 +185,14 @@ class Field {
     obs = score / 5;
 
     for (int i = 0; i < W; ++i) {
-      if (blocks[T - 1][i] != EMPTY) return false;
+      if (blocks[T - 1][i]) return false;
     }
     {  // value
       value = 0;
       int x = 0;
       for (int i = T; i < HT; ++i) {
         for (int j = 0; j < W; ++j) {
-          if (blocks[i][j] != EMPTY) {
+          if (blocks[i][j]) {
             value += S - blocks[i][j];
             if (++x >= 120) value -= S;
           }
