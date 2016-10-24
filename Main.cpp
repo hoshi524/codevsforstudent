@@ -82,7 +82,150 @@ class Field {
   }
 
   inline int setDelete(const bool (&check)[6][HT], bool &end,
-                       bool (&del)[HT][W]) {}
+                       bool (&del)[HT][W]) {
+    int e = 0;
+    for (int j = 0; j < W; ++j) {
+      if (check[0][j]) {
+        // 上
+        for (int i = HT - 1, ki = i, sum = 0; i >= 0; --i) {
+          if (blocks[i][j] == EMPTY || blocks[i][j] == OBSTACLE) {
+            ki = i - 1;
+            sum = 0;
+          } else {
+            sum += blocks[i][j];
+            while (sum > S) {
+              sum -= blocks[ki][j];
+              --ki;
+            }
+            if (sum == S) {
+              end = false;
+              e += 1 - i + ki;
+              for (int pi = ki; pi >= i; --pi) del[pi][j] = true;
+            }
+          }
+        }
+      }
+      if (check[1][j]) {
+        // 右上
+        for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0;
+             ti >= 0 && tj < W; --ti, ++tj) {
+          if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
+            ki = ti - 1;
+            kj = tj + 1;
+            sum = 0;
+          } else {
+            sum += blocks[ti][tj];
+            while (sum > S) {
+              sum -= blocks[ki][kj];
+              --ki;
+              ++kj;
+            }
+            if (sum == S) {
+              end = false;
+              e += 1 + tj - kj;
+              for (int pi = ki, pj = kj; pj <= tj; --pi, ++pj)
+                del[pi][pj] = true;
+            }
+          }
+        }
+      }
+      if (check[2][j]) {
+        // 左上
+        for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0;
+             ti >= 0 && tj >= 0; --ti, --tj) {
+          if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
+            ki = ti - 1;
+            kj = tj - 1;
+            sum = 0;
+          } else {
+            sum += blocks[ti][tj];
+            while (sum > S) {
+              sum -= blocks[ki][kj];
+              --ki;
+              --kj;
+            }
+            if (sum == S) {
+              end = false;
+              e += 1 - tj + kj;
+              for (int pi = ki, pj = kj; pj >= tj; --pi, --pj)
+                del[pi][pj] = true;
+            }
+          }
+        }
+      }
+    }
+    for (int i = 0; i < HT; ++i) {
+      if (check[3][i]) {
+        // 右
+        for (int j = 0, kj = j, sum = 0; j < W; ++j) {
+          if (blocks[i][j] == EMPTY || blocks[i][j] == OBSTACLE) {
+            kj = j + 1;
+            sum = 0;
+          } else {
+            sum += blocks[i][j];
+            while (sum > S) {
+              sum -= blocks[i][kj];
+              ++kj;
+            }
+            if (sum == S) {
+              end = false;
+              e += 1 + j - kj;
+              for (int pj = kj; pj <= j; ++pj) del[i][pj] = true;
+            }
+          }
+        }
+      }
+      if (check[4][i]) {
+        // 右上
+        for (int ti = i, tj = 0, ki = ti, kj = tj, sum = 0; ti >= 0 && tj < W;
+             --ti, ++tj) {
+          if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
+            ki = ti - 1;
+            kj = tj + 1;
+            sum = 0;
+          } else {
+            sum += blocks[ti][tj];
+            while (sum > S) {
+              sum -= blocks[ki][kj];
+              --ki;
+              ++kj;
+            }
+            if (sum == S) {
+              end = false;
+              e += 1 + tj - kj;
+              for (int pi = ki, pj = kj; pj <= tj; --pi, ++pj)
+                del[pi][pj] = true;
+            }
+          }
+        }
+      }
+      if (check[5][i]) {
+        // 左上
+        for (int ti = i, tj = W - 1, ki = ti, kj = tj, sum = 0;
+             ti >= 0 && tj >= 0; --ti, --tj) {
+          if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
+            ki = ti - 1;
+            kj = tj - 1;
+            sum = 0;
+          } else {
+            sum += blocks[ti][tj];
+            while (sum > S) {
+              sum -= blocks[ki][kj];
+              --ki;
+              --kj;
+            }
+            if (sum == S) {
+              end = false;
+              e += 1 - tj + kj;
+              for (int pi = ki, pj = kj; pj >= tj; --pi, --pj)
+                del[pi][pj] = true;
+            }
+          }
+        }
+      }
+    }
+    return e;
+  }
 
   inline void setCheck(bool (&check)[6][HT], const int i, const int j) {
     check[0][j] = true;
@@ -120,149 +263,11 @@ class Field {
     int score = 0;
     double chain = 1;
     while (true) {
-      int e = 0;
       bool end = true;
       memset(del, false, sizeof(del));
-      for (int j = 0; j < W; ++j) {
-        if (check[0][j]) {
-          // 上
-          for (int i = HT - 1, ki = i, sum = 0; i >= 0; --i) {
-            if (blocks[i][j] == EMPTY || blocks[i][j] == OBSTACLE) {
-              ki = i - 1;
-              sum = 0;
-            } else {
-              sum += blocks[i][j];
-              while (sum > S) {
-                sum -= blocks[ki][j];
-                --ki;
-              }
-              if (sum == S) {
-                end = false;
-                e += 1 - i + ki;
-                for (int pi = ki; pi >= i; --pi) del[pi][j] = true;
-              }
-            }
-          }
-        }
-        if (check[1][j]) {
-          // 右上
-          for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0;
-               ti >= 0 && tj < W; --ti, ++tj) {
-            if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
-              ki = ti - 1;
-              kj = tj + 1;
-              sum = 0;
-            } else {
-              sum += blocks[ti][tj];
-              while (sum > S) {
-                sum -= blocks[ki][kj];
-                --ki;
-                ++kj;
-              }
-              if (sum == S) {
-                end = false;
-                e += 1 + tj - kj;
-                for (int pi = ki, pj = kj; pj <= tj; --pi, ++pj)
-                  del[pi][pj] = true;
-              }
-            }
-          }
-        }
-        if (check[2][j]) {
-          // 左上
-          for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0;
-               ti >= 0 && tj >= 0; --ti, --tj) {
-            if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
-              ki = ti - 1;
-              kj = tj - 1;
-              sum = 0;
-            } else {
-              sum += blocks[ti][tj];
-              while (sum > S) {
-                sum -= blocks[ki][kj];
-                --ki;
-                --kj;
-              }
-              if (sum == S) {
-                end = false;
-                e += 1 - tj + kj;
-                for (int pi = ki, pj = kj; pj >= tj; --pi, --pj)
-                  del[pi][pj] = true;
-              }
-            }
-          }
-        }
-      }
-      for (int i = 0; i < HT; ++i) {
-        if (check[3][i]) {
-          // 右
-          for (int j = 0, kj = j, sum = 0; j < W; ++j) {
-            if (blocks[i][j] == EMPTY || blocks[i][j] == OBSTACLE) {
-              kj = j + 1;
-              sum = 0;
-            } else {
-              sum += blocks[i][j];
-              while (sum > S) {
-                sum -= blocks[i][kj];
-                ++kj;
-              }
-              if (sum == S) {
-                end = false;
-                e += 1 + j - kj;
-                for (int pj = kj; pj <= j; ++pj) del[i][pj] = true;
-              }
-            }
-          }
-        }
-        if (check[4][i]) {
-          // 右上
-          for (int ti = i, tj = 0, ki = ti, kj = tj, sum = 0; ti >= 0 && tj < W;
-               --ti, ++tj) {
-            if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
-              ki = ti - 1;
-              kj = tj + 1;
-              sum = 0;
-            } else {
-              sum += blocks[ti][tj];
-              while (sum > S) {
-                sum -= blocks[ki][kj];
-                --ki;
-                ++kj;
-              }
-              if (sum == S) {
-                end = false;
-                e += 1 + tj - kj;
-                for (int pi = ki, pj = kj; pj <= tj; --pi, ++pj)
-                  del[pi][pj] = true;
-              }
-            }
-          }
-        }
-        if (check[5][i]) {
-          // 左上
-          for (int ti = i, tj = W - 1, ki = ti, kj = tj, sum = 0;
-               ti >= 0 && tj >= 0; --ti, --tj) {
-            if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
-              ki = ti - 1;
-              kj = tj - 1;
-              sum = 0;
-            } else {
-              sum += blocks[ti][tj];
-              while (sum > S) {
-                sum -= blocks[ki][kj];
-                --ki;
-                --kj;
-              }
-              if (sum == S) {
-                end = false;
-                e += 1 - tj + kj;
-                for (int pi = ki, pj = kj; pj >= tj; --pi, --pj)
-                  del[pi][pj] = true;
-              }
-            }
-          }
-        }
-      }
+      
+      int e = setDelete(check, end, del);
+
       if (end) break;
       memset(check, false, sizeof(check));
       for (int j = 0; j < W; ++j) {
