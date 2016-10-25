@@ -10,8 +10,8 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
-static const int node = 10000; // prod
-// static const int node = 1000; // test
+// static const int node = 10000;  // prod
+static const int node = 1000; // test
 static const int depth = 10;
 
 class Pack {
@@ -86,10 +86,7 @@ class Field {
       if (check[0][j]) {
         // 上
         for (int i = HT - 1, ki = i, sum = 0; i >= 0; --i) {
-          if (blocks[i][j] == EMPTY || blocks[i][j] == OBSTACLE) {
-            ki = i - 1;
-            sum = 0;
-          } else {
+          if (blocks[i][j]) {
             sum += blocks[i][j];
             while (sum > S) {
               sum -= blocks[ki][j];
@@ -99,6 +96,9 @@ class Field {
               e += 1 - i + ki;
               for (int pi = ki; pi >= i; --pi) del[pi][j] = true;
             }
+          } else {
+            ki = i - 1;
+            sum = 0;
           }
         }
       }
@@ -106,11 +106,7 @@ class Field {
         // 右上
         for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0; tj < W;
              --ti, ++tj) {
-          if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
-            ki = ti - 1;
-            kj = tj + 1;
-            sum = 0;
-          } else {
+          if (blocks[ti][tj]) {
             sum += blocks[ti][tj];
             while (sum > S) {
               sum -= blocks[ki][kj];
@@ -122,6 +118,10 @@ class Field {
               for (int pi = ki, pj = kj; pj <= tj; --pi, ++pj)
                 del[pi][pj] = true;
             }
+          } else {
+            ki = ti - 1;
+            kj = tj + 1;
+            sum = 0;
           }
         }
       }
@@ -129,11 +129,7 @@ class Field {
         // 左上
         for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0; tj >= 0;
              --ti, --tj) {
-          if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
-            ki = ti - 1;
-            kj = tj - 1;
-            sum = 0;
-          } else {
+          if (blocks[ti][tj]) {
             sum += blocks[ti][tj];
             while (sum > S) {
               sum -= blocks[ki][kj];
@@ -145,6 +141,10 @@ class Field {
               for (int pi = ki, pj = kj; pj >= tj; --pi, --pj)
                 del[pi][pj] = true;
             }
+          } else {
+            ki = ti - 1;
+            kj = tj - 1;
+            sum = 0;
           }
         }
       }
@@ -153,10 +153,7 @@ class Field {
       if (check[3][i]) {
         // 右
         for (int j = 0, kj = j, sum = 0; j < W; ++j) {
-          if (blocks[i][j] == EMPTY || blocks[i][j] == OBSTACLE) {
-            kj = j + 1;
-            sum = 0;
-          } else {
+          if (blocks[i][j]) {
             sum += blocks[i][j];
             while (sum > S) {
               sum -= blocks[i][kj];
@@ -166,6 +163,9 @@ class Field {
               e += 1 + j - kj;
               for (int pj = kj; pj <= j; ++pj) del[i][pj] = true;
             }
+          } else {
+            kj = j + 1;
+            sum = 0;
           }
         }
       }
@@ -173,11 +173,7 @@ class Field {
         // 右上
         for (int ti = i, tj = 0, ki = ti, kj = tj, sum = 0; ti >= 0 && tj < W;
              --ti, ++tj) {
-          if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
-            ki = ti - 1;
-            kj = tj + 1;
-            sum = 0;
-          } else {
+          if (blocks[ti][tj]) {
             sum += blocks[ti][tj];
             while (sum > S) {
               sum -= blocks[ki][kj];
@@ -189,6 +185,10 @@ class Field {
               for (int pi = ki, pj = kj; pj <= tj; --pi, ++pj)
                 del[pi][pj] = true;
             }
+          } else {
+            ki = ti - 1;
+            kj = tj + 1;
+            sum = 0;
           }
         }
       }
@@ -196,11 +196,7 @@ class Field {
         // 左上
         for (int ti = i, tj = W - 1, ki = ti, kj = tj, sum = 0;
              ti >= 0 && tj >= 0; --ti, --tj) {
-          if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
-            ki = ti - 1;
-            kj = tj - 1;
-            sum = 0;
-          } else {
+          if (blocks[ti][tj]) {
             sum += blocks[ti][tj];
             while (sum > S) {
               sum -= blocks[ki][kj];
@@ -212,6 +208,10 @@ class Field {
               for (int pi = ki, pj = kj; pj >= tj; --pi, --pj)
                 del[pi][pj] = true;
             }
+          } else {
+            ki = ti - 1;
+            kj = tj - 1;
+            sum = 0;
           }
         }
       }
