@@ -9,11 +9,10 @@ static const int S = 10;
 static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
-static const int target = 60;
-// static const int depth = 10;   // prod
-// static const int width = 1000;  // prod
-static const int depth = 10;   // test
-static const int width = 100;  // test
+static const int target = 80;
+static const int node = 10000; // prod
+// static const int node = 1000; // test
+static const int depth = 10;
 
 class Pack {
  public:
@@ -356,37 +355,51 @@ void execute() {
     if (myObstacle > 0) myObstacle -= np[t - turn].fill(myObstacle);
   }
 
-  int value = INT_MIN, pos, rot;
+  int value = INT_MIN, pos, rot, ti = -1, obs;
   priority_queue<Field> search[depth];
   search[0].push(myField);
-  for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
-    for (int j = 0; j < width && !search[i].empty(); ++j) {
-      Field field = search[i].top();
-      search[i].pop();
-      for (int r = 0; r < 4; ++r) {
-        for (int w = 0; w < W - T + 1; ++w) {
-          Field c = field;
-          if (c.next(np[i], w)) {
-            if (i == 0) {
-              c.rot = r;
-              c.pos = w;
-            }
-            search[i + 1].push(c);
+  bool ok = true;
+  for (int k = 0; ok && k < node;) {
+    ok = false;
+    for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
+      for (int j = 0; j < 5 && !search[i].empty(); ++j) {
+        ok = true;
+        ++k;
+        Field field = search[i].top();
+        search[i].pop();
+        for (int r = 0; r < 4; ++r) {
+          for (int w = 0; w < W - T + 1; ++w) {
+            Field c = field;
+            if (c.next(np[i], w)) {
+              if (i == 0) {
+                c.rot = r;
+                c.pos = w;
+              }
+              search[i + 1].push(c);
 
-            int tv = c.value + (min(c.obs, target) << 16) - (i << 12) +
-                     (max(c.obs - target, 0) << 8);
-            if (value < tv) {
-              value = tv;
-              pos = c.pos;
-              rot = c.rot;
+              int tv = c.value + (min(c.obs, target) << 17) - (i << 16) +
+                       (max(c.obs - target, 0) << 8);
+              if (value < tv) {
+                value = tv;
+                pos = c.pos;
+                rot = c.rot;
+                obs = c.obs;
+                ti = i;
+              }
+              if (c.obs >= target) {
+                is = i + 1;
+              }
             }
           }
+          np[i].rotate();
         }
-        np[i].rotate();
       }
     }
   }
   printf("%d %d\n", pos, rot);
+  if (ti == 0 && obs >= target) {
+    cerr << "turn : obs  " << turn << " : " << obs << endl;
+  }
 }
 };
 
