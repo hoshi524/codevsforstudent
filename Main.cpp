@@ -10,7 +10,7 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
-// static const int node = 10000;  // prod
+// static const int node = 11000;  // prod
 static const int node = 1000; // test
 static const int depth = 10;
 
@@ -63,7 +63,8 @@ class Pack {
 
 class Field {
  public:
-  int blocks[HT][W], pos, rot, obs, value;
+  char blocks[HT][W], pos, rot;
+  int obs, value;
 
   Field() { memset(blocks, 0, sizeof(blocks)); }
   Field(const Field &x) { memcpy(this, &x, sizeof(x)); }
