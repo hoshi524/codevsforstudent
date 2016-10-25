@@ -105,8 +105,8 @@ class Field {
       }
       if (check[1][j]) {
         // 右上
-        for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0;
-             ti >= 0 && tj < W; --ti, ++tj) {
+        for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0; tj < W;
+             --ti, ++tj) {
           if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
             ki = ti - 1;
             kj = tj + 1;
@@ -128,8 +128,8 @@ class Field {
       }
       if (check[2][j]) {
         // 左上
-        for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0;
-             ti >= 0 && tj >= 0; --ti, --tj) {
+        for (int ti = HT - 1, tj = j, ki = ti, kj = tj, sum = 0; tj >= 0;
+             --ti, --tj) {
           if (blocks[ti][tj] == EMPTY || blocks[ti][tj] == OBSTACLE) {
             ki = ti - 1;
             kj = tj - 1;
