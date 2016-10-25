@@ -294,12 +294,10 @@ class Field {
     }
     {  // value
       value = 0;
-      int x = 0;
       for (int i = T; i < HT; ++i) {
         for (int j = 0; j < W; ++j) {
           if (blocks[i][j]) {
             value += S - blocks[i][j];
-            if (++x >= 120) value -= S;
           }
         }
       }
