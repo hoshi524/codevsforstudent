@@ -81,8 +81,7 @@ class Field {
     cin >> end;
   }
 
-  inline int setDelete(const bool (&check)[6][HT], bool &end,
-                       bool (&del)[HT][W]) {
+  inline int setDelete(const bool (&check)[6][HT], bool (&del)[HT][W]) {
     int e = 0;
     for (int j = 0; j < W; ++j) {
       if (check[0][j]) {
@@ -98,7 +97,6 @@ class Field {
               --ki;
             }
             if (sum == S) {
-              end = false;
               e += 1 - i + ki;
               for (int pi = ki; pi >= i; --pi) del[pi][j] = true;
             }
@@ -121,7 +119,6 @@ class Field {
               ++kj;
             }
             if (sum == S) {
-              end = false;
               e += 1 + tj - kj;
               for (int pi = ki, pj = kj; pj <= tj; --pi, ++pj)
                 del[pi][pj] = true;
@@ -145,7 +142,6 @@ class Field {
               --kj;
             }
             if (sum == S) {
-              end = false;
               e += 1 - tj + kj;
               for (int pi = ki, pj = kj; pj >= tj; --pi, --pj)
                 del[pi][pj] = true;
@@ -168,7 +164,6 @@ class Field {
               ++kj;
             }
             if (sum == S) {
-              end = false;
               e += 1 + j - kj;
               for (int pj = kj; pj <= j; ++pj) del[i][pj] = true;
             }
@@ -191,7 +186,6 @@ class Field {
               ++kj;
             }
             if (sum == S) {
-              end = false;
               e += 1 + tj - kj;
               for (int pi = ki, pj = kj; pj <= tj; --pi, ++pj)
                 del[pi][pj] = true;
@@ -215,7 +209,6 @@ class Field {
               --kj;
             }
             if (sum == S) {
-              end = false;
               e += 1 - tj + kj;
               for (int pi = ki, pj = kj; pj >= tj; --pi, --pj)
                 del[pi][pj] = true;
@@ -263,12 +256,10 @@ class Field {
     int score = 0;
     double chain = 1;
     while (true) {
-      bool end = true;
       memset(del, false, sizeof(del));
-      
-      int e = setDelete(check, end, del);
+      int e = setDelete(check, del);
+      if (e == 0) break;
 
-      if (end) break;
       memset(check, false, sizeof(check));
       for (int j = 0; j < W; ++j) {
         for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j]; --i) {
@@ -283,6 +274,7 @@ class Field {
           }
         }
       }
+
       chain *= 1.3;
       e /= 2;
       score += (int)chain * e;
