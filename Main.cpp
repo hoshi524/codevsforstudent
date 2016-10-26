@@ -221,6 +221,7 @@ class Field {
   }
 
   inline void setCheck(bool (&check)[6][HT], const int i, const int j) {
+    if (blocks[i][j] == OBSTACLE) return;
     check[0][j] = true;
     check[3][i] = true;
     if (HT - i - 1 <= j) {
@@ -246,7 +247,7 @@ class Field {
       for (int i = T - 1; i >= 0; --i) {
         const int v = p.blocks[i][j];
         if (v) {
-          if (v < OBSTACLE) setCheck(check, h, w + j);
+          setCheck(check, h, w + j);
           blocks[h--][w + j] = v;
         }
       }
@@ -269,7 +270,7 @@ class Field {
           } else if (k != -1) {
             blocks[k][j] = blocks[i][j];
             blocks[i][j] = EMPTY;
-            if (blocks[k][j] < OBSTACLE) setCheck(check, k, j);
+            setCheck(check, k, j);
             --k;
           }
         }
