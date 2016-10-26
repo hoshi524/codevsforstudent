@@ -11,7 +11,7 @@ static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 // static const int node = 11000;  // prod
-static const int node = 1000; // test
+static const int node = 1000;  // test
 static const int depth = 10;
 
 class Pack {
@@ -63,8 +63,8 @@ class Pack {
 
 class Field {
  public:
-  char blocks[HT][W], pos, rot;
-  int obs, value;
+  char blocks[HT][W];
+  int pos, rot, obs, value;
 
   Field() { memset(blocks, 0, sizeof(blocks)); }
   Field(const Field &x) { memcpy(this, &x, sizeof(x)); }
@@ -246,7 +246,7 @@ class Field {
       for (int i = T - 1; i >= 0; --i) {
         const int v = p.blocks[i][j];
         if (v) {
-          setCheck(check, h, w + j);
+          if (v < OBSTACLE) setCheck(check, h, w + j);
           blocks[h--][w + j] = v;
         }
       }
@@ -269,7 +269,7 @@ class Field {
           } else if (k != -1) {
             blocks[k][j] = blocks[i][j];
             blocks[i][j] = EMPTY;
-            setCheck(check, k, j);
+            if (blocks[k][j] < OBSTACLE) setCheck(check, k, j);
             --k;
           }
         }
