@@ -289,8 +289,10 @@ class Field {
       value = 0;
       for (int i = T; i < HT; ++i) {
         for (int j = 0; j < W; ++j) {
-          if (blocks[i][j]) {
-            value += S - blocks[i][j];
+          if (blocks[i][j] == OBSTACLE) {
+            value += i;
+          } else if (blocks[i][j]) {
+            value += S - blocks[i][j] + HT - i;
           }
         }
       }
