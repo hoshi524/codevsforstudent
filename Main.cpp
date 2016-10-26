@@ -10,8 +10,8 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
-// static const int node = 11000;  // prod
-static const int node = 1000;  // test
+// static const int node = 12000;  // prod
+static const int node = 2000;  // test
 static const int depth = 10;
 
 class Pack {
@@ -370,7 +370,23 @@ void execute() {
         Field field = search[i].top();
         search[i].pop();
         for (int r = 0; r < 4; ++r) {
-          for (int w = 0; w < W - T + 1; ++w) {
+          int left = 0, right = W - T + 1;
+          {
+            int(&p)[T][T] = np[i].blocks;
+            for (int a = 0; a < T; ++a) {
+              if (p[0][a] | p[1][a] | p[2][a])
+                break;
+              else
+                --left;
+            }
+            for (int a = T - 1; a >= 0; --a) {
+              if (p[0][a] | p[1][a] | p[2][a])
+                break;
+              else
+                ++right;
+            }
+          }
+          for (int w = left; w < right; ++w) {
             Field c = field;
             if (c.next(np[i], w)) {
               if (i == 0) {
