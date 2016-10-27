@@ -330,6 +330,7 @@ int time;
 Pack packs[N];
 Field myField;
 Field opField;
+Field prev;
 int myObstacle;
 int opObstacle;
 
@@ -349,6 +350,9 @@ bool inputTurn() {
   myField.input();
   cin >> opObstacle;
   opField.input();
+  if (turn > 0 && prev != myField) {
+    cerr << "diff" << endl;
+  }
   return true;
 }
 
@@ -362,13 +366,9 @@ void execute() {
   int value = INT_MIN, pos, rot, ti = -1, obs;
   priority_queue<Field> search[depth];
   search[0].push(myField);
-  bool ok = true;
-  for (int k = 0; ok && k < node;) {
-    ok = false;
+  for (int k = 0; k < node; ++k) {
     for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
-      for (int j = 0; j < 5 && !search[i].empty(); ++j) {
-        ok = true;
-        ++k;
+      for (int j = 0; j < 5 && !search[i].empty(); ++j, ++k) {
         Field field = search[i].top();
         search[i].pop();
         for (int r = 0; r < 4; ++r) {
@@ -397,7 +397,7 @@ void execute() {
               }
               search[i + 1].push(c);
 
-              int tv = c.value + (min(c.obs, target) << 17) - (i << 16) +
+              int tv = c.value + (min(c.obs, target) << 15) - (i << 13) +
                        (max(c.obs - target, 0) << 8);
               if (value < tv) {
                 value = tv;
@@ -419,6 +419,13 @@ void execute() {
   printf("%d %d\n", pos, rot);
   if (ti == 0 && obs >= target) {
     cerr << "turn : obs  " << turn << " : " << obs << endl;
+  }
+  {
+    prev = myField;
+    for (int i = 0; i < rot; ++i) {
+      np[0].rotate();
+    }
+    prev.next(np[0], pos);
   }
 }
 };
