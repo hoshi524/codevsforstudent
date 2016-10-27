@@ -360,7 +360,7 @@ void execute() {
   Pack np[N - turn];
   for (int t = turn; t < N; ++t) {
     np[t - turn] = packs[t];
-    if (myObstacle > 0) myObstacle -= np[t - turn].fill(myObstacle);
+    if (myObstacle) myObstacle -= np[t - turn].fill(myObstacle);
   }
 
   int value = INT_MIN, pos, rot, ti = -1, obs;
@@ -397,7 +397,7 @@ void execute() {
               }
               search[i + 1].push(c);
 
-              int tv = c.value + (min(c.obs, target) << 15) - (i << 13) +
+              int tv = c.value + (min(c.obs, target) << 14) - (i << 12) +
                        (max(c.obs - target, 0) << 8);
               if (value < tv) {
                 value = tv;
@@ -405,9 +405,6 @@ void execute() {
                 rot = c.rot;
                 obs = c.obs;
                 ti = i;
-              }
-              if (c.obs >= target) {
-                is = i + 1;
               }
             }
           }
