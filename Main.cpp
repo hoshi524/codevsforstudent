@@ -10,8 +10,8 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
-// static const int node = 12000;  // prod
-static const int node = 2000;  // test
+// static const int node = 1000;  // prod
+static const int node = 200;  // test
 static const int depth = 10;
 
 class Pack {
@@ -236,23 +236,27 @@ class Field {
     }
   }
 
-  bool next(const Pack &p, const int w) {
+  int test() {
+    int res = 0;
     bool check[6][HT];
-    memset(check, false, sizeof(check));
-    for (int j = 0; j < T; ++j) {
+    for (int w = 0; w < W; ++w) {
       int h = HT - 1;
       for (; h >= 0; --h) {
-        if (blocks[h][w + j] == EMPTY) break;
+        if (blocks[h][w] == EMPTY) break;
       }
-      for (int i = T - 1; i >= 0; --i) {
-        const int v = p.blocks[i][j];
-        if (v) {
-          setCheck(check, h, w + j);
-          blocks[h--][w + j] = v;
-        }
+      for (int b = 1; b < S; ++b) {
+        Field f = *this;
+        memset(check, false, sizeof(check));
+        f.setCheck(check, h, w);
+        f.blocks[h][w] = b;
+        f.fall(check);
+        res = max(res, f.obs);
       }
     }
+    return res;
+  }
 
+  void fall(bool (&check)[6][HT]) {
     bool del[HT][W];
     int score = 0;
     double chain = 1;
@@ -281,12 +285,32 @@ class Field {
       score += (int)chain * e;
     }
     obs = score / 5;
+  }
+
+  bool next(const Pack &p, const int w) {
+    bool check[6][HT];
+    memset(check, false, sizeof(check));
+    for (int j = 0; j < T; ++j) {
+      int h = HT - 1;
+      for (; h >= 0; --h) {
+        if (blocks[h][w + j] == EMPTY) break;
+      }
+      for (int i = T - 1; i >= 0; --i) {
+        const int v = p.blocks[i][j];
+        if (v) {
+          setCheck(check, h, w + j);
+          blocks[h--][w + j] = v;
+        }
+      }
+    }
+
+    fall(check);
 
     for (int i = 0; i < W; ++i) {
       if (blocks[T - 1][i]) return false;
     }
     {  // value
-      value = 0;
+      value = test() << 10;
       for (int i = T; i < HT; ++i) {
         for (int j = 0; j < W; ++j) {
           if (blocks[i][j] == OBSTACLE) {
@@ -397,8 +421,8 @@ void execute() {
               }
               search[i + 1].push(c);
 
-              int tv = c.value + (min(c.obs, target) << 14) - (i << 12) +
-                       (max(c.obs - target, 0) << 8);
+              int tv = c.value + (min(c.obs, target) << 24) - (i << 22) +
+                       (max(c.obs - target, 0) << 18);
               if (value < tv) {
                 value = tv;
                 pos = c.pos;
