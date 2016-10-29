@@ -10,8 +10,8 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
-// static const int node = 1000;  // prod
-static const int node = 100;  // test
+// static const int node = 900;  // prod
+static const int node = 200;  // test
 static const int depth = 10;
 
 class Pack {
@@ -432,7 +432,7 @@ void execute() {
     }
   }
   printf("%d %d\n", pos, rot);
-  if (ti == 0 && obs >= target) {
+  if (ti == 0 && obs > 0) {
     cerr << "turn : obs  " << turn << " : " << obs << endl;
   }
   {
