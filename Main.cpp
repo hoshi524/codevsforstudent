@@ -11,7 +11,7 @@ static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 // static const int node = 900;  // prod
-static const int node = 100;  // test
+static const int node = 50;  // test
 static const int depth = 10;
 
 class Pack {
@@ -264,9 +264,7 @@ class Field {
     memset(check, false, sizeof(check));
     for (int j = 0; j < T; ++j) {
       int h = HT - 1;
-      for (; h >= 0; --h) {
-        if (blocks[h][w + j] == EMPTY) break;
-      }
+      while (blocks[h][w + j]) --h;
       for (int i = T - 1; i >= 0; --i) {
         const int v = p.blocks[i][j];
         if (v) {
@@ -285,9 +283,7 @@ class Field {
       value = 0;
       for (int w = 0; w < W; ++w) {
         int h = HT - 1;
-        for (; h >= 0; --h) {
-          if (blocks[h][w] == EMPTY) break;
-        }
+        while (blocks[h][w]) --h;
         for (int b = 1; b < S; ++b) {
           Field f = *this;
           memset(check, false, sizeof(check));
@@ -387,16 +383,12 @@ void execute() {
           {
             int(&p)[T][T] = np[i].blocks;
             for (int a = 0; a < T; ++a) {
-              if (p[0][a] | p[1][a] | p[2][a])
-                break;
-              else
-                --left;
+              if (p[0][a] | p[1][a] | p[2][a]) break;
+              --left;
             }
             for (int a = T - 1; a >= 0; --a) {
-              if (p[0][a] | p[1][a] | p[2][a])
-                break;
-              else
-                ++right;
+              if (p[0][a] | p[1][a] | p[2][a]) break;
+              ++right;
             }
           }
           for (int w = left; w < right; ++w) {
