@@ -10,7 +10,7 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
-// static const int node = 900;  // prod
+// static const int node = 800;  // prod
 static const int node = 200;  // test
 static const int depth = 10;
 
