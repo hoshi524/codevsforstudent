@@ -86,20 +86,15 @@ class Field {
     for (int j = 0; j < W; ++j) {
       if (check[0][j]) {
         // 上
-        for (int i = HT - 1, ki = i, sum = 0; i >= 0; --i) {
-          if (blocks[i][j]) {
-            sum += blocks[i][j];
-            while (sum > S) {
-              sum -= blocks[ki][j];
-              --ki;
-            }
-            if (sum == S) {
-              e += 1 - i + ki;
-              for (int pi = ki; pi >= i; --pi) del[pi][j] = true;
-            }
-          } else {
-            ki = i - 1;
-            sum = 0;
+        for (int i = HT - 1, ki = i, sum = 0; i >= 0 && blocks[i][j]; --i) {
+          sum += blocks[i][j];
+          while (sum > S) {
+            sum -= blocks[ki][j];
+            --ki;
+          }
+          if (sum == S) {
+            e += 1 - i + ki;
+            for (int pi = ki; pi >= i; --pi) del[pi][j] = true;
           }
         }
       }
@@ -301,7 +296,7 @@ class Field {
           f.setCheck(check, h, w);
           f.blocks[h][w] = b;
           int obs = f.chain(check);
-          if(value < obs) value = obs;
+          if (value < obs) value = obs;
         }
       }
       value <<= 10;
@@ -369,7 +364,7 @@ bool inputTurn() {
   cin >> opObstacle;
   opField.input();
   if (turn > 0 && prev != myField) {
-    cerr << "diff" << endl;
+    // cerr << "diff" << endl;
   }
   return true;
 }
