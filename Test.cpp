@@ -145,7 +145,7 @@ class Field {
         }
       }
     }
-    for (int i = 0; i < HT; ++i) {
+    for (int i = HT - 1; i; --i) {
       if (check[3][i]) {
         // 右
         for (int j = 0, kj = j, sum = 0; j < W; ++j) {
