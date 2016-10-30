@@ -10,6 +10,7 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
+static const int tasksize = 70;
 // static const int width = 120;  // prod
 static const int width = 10;  // test
 static const int depth = 10;
@@ -81,7 +82,7 @@ class Field {
     cin >> end;
   }
 
-  inline int setDelete(const int (&task)[HT * W][2], const int size,
+  inline int setDelete(const int (&task)[tasksize][2], const int size,
                        bool (&del)[HT][W]) {
     int e = 0;
     for (int t = 0; t < size; ++t) {
@@ -217,7 +218,7 @@ class Field {
     return e;
   }
 
-  inline void setCheck(bool (&check)[6][HT], int (&task)[HT * W][2], int &size,
+  inline void setCheck(bool (&check)[6][HT], int (&task)[tasksize][2], int &size,
                        const int i, const int j) {
     if (blocks[i][j] == OBSTACLE) return;
     if (!check[0][j]) {
@@ -264,7 +265,7 @@ class Field {
     }
   }
 
-  int chain(bool (&check)[6][HT], int (&task)[HT * W][2], int &size) {
+  int chain(bool (&check)[6][HT], int (&task)[tasksize][2], int &size) {
     bool del[HT][W];
     int score = 0;
     double chain = 1;
@@ -297,7 +298,7 @@ class Field {
   bool next(const Pack &p, const int w) {
     bool check[6][HT];
     memset(check, false, sizeof(check));
-    int task[HT * W][2], size = 0;
+    int task[tasksize][2], size = 0;
     for (int j = 0; j < T; ++j) {
       int h = HT - 1;
       while (blocks[h][w + j]) --h;
