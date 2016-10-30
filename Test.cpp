@@ -10,8 +10,8 @@ static const int N = 500;
 static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
-// static const int node = 900;  // prod
-static const int node = 50;  // test
+// static const int width = 100;  // prod
+static const int width = 10;  // test
 static const int depth = 10;
 
 class Pack {
@@ -372,46 +372,44 @@ void execute() {
   int value = INT_MIN, pos, rot, ti = -1, obs;
   priority_queue<Field> search[depth];
   search[0].push(myField);
-  for (int k = 0; k < node; ++k) {
-    for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
-      for (int j = 0; j < 5 && !search[i].empty(); ++j, ++k) {
-        Field field = search[i].top();
-        search[i].pop();
-        for (int r = 0; r < 4; ++r) {
-          int left = 0, right = W - T + 1;
-          {
-            int(&p)[T][T] = np[i].blocks;
-            for (int a = 0; a < T; ++a) {
-              if (p[0][a] | p[1][a] | p[2][a]) break;
-              --left;
-            }
-            for (int a = T - 1; a >= 0; --a) {
-              if (p[0][a] | p[1][a] | p[2][a]) break;
-              ++right;
-            }
+  for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
+    for (int j = 0; j < width && !search[i].empty(); ++j) {
+      Field field = search[i].top();
+      search[i].pop();
+      for (int r = 0; r < 4; ++r) {
+        int left = 0, right = W - T + 1;
+        {
+          int(&p)[T][T] = np[i].blocks;
+          for (int a = 0; a < T; ++a) {
+            if (p[0][a] | p[1][a] | p[2][a]) break;
+            --left;
           }
-          for (int w = left; w < right; ++w) {
-            Field c = field;
-            if (c.next(np[i], w)) {
-              if (i == 0) {
-                c.rot = r;
-                c.pos = w;
-              }
-              search[i + 1].push(c);
-
-              int tv = c.value + (min(c.obs, target) << 24) - (i << 22) +
-                       (max(c.obs - target, 0) << 18);
-              if (value < tv) {
-                value = tv;
-                pos = c.pos;
-                rot = c.rot;
-                obs = c.obs;
-                ti = i;
-              }
-            }
+          for (int a = T - 1; a >= 0; --a) {
+            if (p[0][a] | p[1][a] | p[2][a]) break;
+            ++right;
           }
-          np[i].rotate();
         }
+        for (int w = left; w < right; ++w) {
+          Field c = field;
+          if (c.next(np[i], w)) {
+            if (i == 0) {
+              c.rot = r;
+              c.pos = w;
+            }
+            search[i + 1].push(c);
+
+            int tv = c.value + (min(c.obs, target) << 24) - (i << 22) +
+                     (max(c.obs - target, 0) << 18);
+            if (value < tv) {
+              value = tv;
+              pos = c.pos;
+              rot = c.rot;
+              obs = c.obs;
+              ti = i;
+            }
+          }
+        }
+        np[i].rotate();
       }
     }
   }
