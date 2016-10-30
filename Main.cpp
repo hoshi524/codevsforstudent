@@ -240,11 +240,11 @@ class Field {
 
       memset(check, false, sizeof(check));
       for (int j = 0; j < W; ++j) {
-        for (int i = HT - 1, k = -1; i >= 0 && blocks[i][j]; --i) {
+        for (int i = HT - 1, k = 0; i >= 0 && blocks[i][j]; --i) {
           if (del[i][j]) {
             blocks[i][j] = EMPTY;
-            if (k == -1) k = i;
-          } else if (k != -1) {
+            if (k == 0) k = i;
+          } else if (k) {
             blocks[k][j] = blocks[i][j];
             setCheck(check, k, j);
             blocks[i][j] = EMPTY;
@@ -253,8 +253,7 @@ class Field {
         }
       }
       chain *= 1.3;
-      e /= 2;
-      score += (int)chain * e;
+      score += (int)chain * (e / 2);
     }
     return score / 5;
   }
