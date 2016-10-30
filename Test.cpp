@@ -11,8 +11,8 @@ static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
-// static const int width = 120;  // prod
-static const int width = 10;  // test
+static const int width = 150;  // prod
+// static const int width = 15;  // test
 static const int depth = 10;
 
 class Pack {

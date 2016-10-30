@@ -11,8 +11,8 @@ static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
-static const int width = 150;  // prod
-// static const int width = 15;  // test
+static const int width = 120;  // prod
+// static const int width = 10;  // test
 static const int depth = 10;
 
 class Pack {
@@ -218,8 +218,8 @@ class Field {
     return e;
   }
 
-  inline void setCheck(bool (&check)[6][HT], int (&task)[tasksize][2], int &size,
-                       const int i, const int j) {
+  inline void setCheck(bool (&check)[6][HT], int (&task)[tasksize][2],
+                       int &size, const int i, const int j) {
     if (blocks[i][j] == OBSTACLE) return;
     if (!check[0][j]) {
       check[0][j] = true;
@@ -401,13 +401,87 @@ bool inputTurn() {
   return true;
 }
 
-void execute() {
+bool checkOpp(const int obs) {
   Pack np[N - turn];
   for (int t = turn; t < N; ++t) {
     np[t - turn] = packs[t];
-    if (myObstacle) myObstacle -= np[t - turn].fill(myObstacle);
+    if (opObstacle) opObstacle -= np[t - turn].fill(opObstacle);
   }
+  for (int t = turn + 1, o = obs; t < N; ++t) {
+    if (o) o -= np[t - turn].fill(o);
+  }
+  priority_queue<Field> search[depth];
+  search[0].push(opField);
+  for (int i = 0, is = min(depth - 1, N - turn); i < is; ++i) {
+    for (int j = 0; j < width && !search[i].empty(); ++j) {
+      Field field = search[i].top();
+      search[i].pop();
+      for (int r = 0; r < 4; ++r) {
+        int left = 0, right = W - T + 1;
+        {
+          int(&p)[T][T] = np[i].blocks;
+          for (int a = 0; a < T; ++a) {
+            if (p[0][a] | p[1][a] | p[2][a]) break;
+            --left;
+          }
+          for (int a = T - 1; a >= 0; --a) {
+            if (p[0][a] | p[1][a] | p[2][a]) break;
+            ++right;
+          }
+        }
+        for (int w = left; w < right; ++w) {
+          Field c = field;
+          if (c.next(np[i], w)) {
+            if (obs <= c.obs) return false;
+            search[i + 1].push(c);
+          }
+        }
+        np[i].rotate();
+      }
+    }
+  }
+  return true;
+}
 
+void execute() {
+  Pack np[N - turn];
+  for (int t = turn, o = myObstacle; t < N; ++t) {
+    np[t - turn] = packs[t];
+    if (o) o -= np[t - turn].fill(o);
+  }
+  {
+    int pos, rot, obs = 0;
+    for (int r = 0; r < 4; ++r) {
+      int left = 0, right = W - T + 1;
+      {
+        int(&p)[T][T] = np[0].blocks;
+        for (int a = 0; a < T; ++a) {
+          if (p[0][a] | p[1][a] | p[2][a]) break;
+          --left;
+        }
+        for (int a = T - 1; a >= 0; --a) {
+          if (p[0][a] | p[1][a] | p[2][a]) break;
+          ++right;
+        }
+      }
+      for (int w = left; w < right; ++w) {
+        Field c = myField;
+        if (c.next(np[0], w)) {
+          if (obs < c.obs) {
+            obs = c.obs;
+            pos = w;
+            rot = r;
+          }
+        }
+      }
+      np[0].rotate();
+    }
+    if (obs > target && obs > myObstacle && checkOpp(obs - myObstacle)) {
+      printf("%d %d\n", pos, rot);
+      cerr << "stare turn : obs  " << turn << " : " << obs << endl;
+      return;
+    }
+  }
   int value = INT_MIN, pos, rot, ti = -1, obs;
   priority_queue<Field> search[depth];
   search[0].push(myField);
@@ -437,8 +511,7 @@ void execute() {
             }
             search[i + 1].push(c);
 
-            int tv = c.value + (min(c.obs, target) << 24) - (i << 22) +
-                     (max(c.obs - target, 0) << 18);
+            int tv = c.value + (c.obs << 22) - (i << 20);
             if (value < tv) {
               value = tv;
               pos = c.pos;
