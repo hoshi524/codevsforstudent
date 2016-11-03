@@ -69,7 +69,10 @@ class Field {
   int pos, rot, obs, value;
 
   Field() { memset(blocks, 0, sizeof(blocks)); }
-  Field(const Field &x) { memcpy(this, &x, sizeof(x)); }
+  Field(const Field &) = default;
+  Field &operator=(const Field &) = default;
+  Field(Field &&) noexcept = default;
+  Field &operator=(Field &&) noexcept = default;
 
   void input() {
     int block;
@@ -82,31 +85,6 @@ class Field {
   }
 
   int setDelete(int (&task)[tasksize][2], int size, bool (&del)[HTW]) {
-    for (int i = HTW - W; i < HTW; ++i) {
-      task[size][0] = 0;
-      task[size][1] = i;
-      ++size;
-      task[size][0] = 1;
-      task[size][1] = i;
-      ++size;
-      task[size][0] = 2;
-      task[size][1] = i;
-      ++size;
-    }
-    for (int i = 0; i < HTW; i += W) {
-      task[size][0] = 3;
-      task[size][1] = i;
-      ++size;
-      if (i < HTW - W) {
-        task[size][0] = 4;
-        task[size][1] = i;
-        ++size;
-        task[size][0] = 5;
-        task[size][1] = i + W - 1;
-        ++size;
-      }
-    }
-
     int e = 0;
     for (int t = 0; t < size; ++t) {
       switch (task[t][0]) {
@@ -231,11 +209,43 @@ class Field {
     return e;
   }
 
-  int chain(bool (&check)[6][HT], int (&task)[tasksize][2], int size) {
+  inline void setCheck(bool (&check)[6][HTW], int (&task)[tasksize][2],
+                       int &size, int c, int p) {
+    assert(0 <= p && p < HTW);
+    if (check[c][p]) {
+      check[c][p] = false;
+      task[size][0] = c;
+      task[size][1] = p;
+      ++size;
+    }
+  }
+
+  inline void setCheck(bool (&check)[6][HTW], int (&task)[tasksize][2],
+                       int &size, const int p) {
+    assert(p < HTW);
+    if (blocks[p] == OBSTACLE) return;
+    int h = p / W, w = p % W;
+    setCheck(check, task, size, 0, HTW - W + w);
+    setCheck(check, task, size, 3, p - w);
+    if (HT - h - 1 <= w) {
+      setCheck(check, task, size, 1, HTW - W + w - (HT - h - 1));
+    } else {
+      setCheck(check, task, size, 4, (h + w) * W);
+    }
+    if (HT - h - 1 < W - w) {
+      setCheck(check, task, size, 2, HTW - W + w + (HT - h - 1));
+    } else {
+      setCheck(check, task, size, 5, (h + (W - w - 1)) * W);
+    }
+  }
+
+  int chain(bool (&check)[6][HTW], int (&task)[tasksize][2], int size) {
     bool del[HTW];
     int score = 0;
     double chain = 1;
+    int x = 0;
     while (true) {
+      assert(x++ < 100);
       memset(del, false, sizeof(del));
       int e = setDelete(task, size, del);
       if (e == 0) break;
@@ -249,6 +259,7 @@ class Field {
             if (k == 0) k = i;
           } else if (k) {
             blocks[k] = blocks[i];
+            setCheck(check, task, size, k);
             blocks[i] = EMPTY;
             k -= W;
           }
@@ -261,24 +272,24 @@ class Field {
   }
 
   bool next(const Pack &pack, const int w) {
-    bool check[6][HT];
+    bool check[6][HTW];
     memset(check, true, sizeof(check));
     int task[tasksize][2], size = 0;
-    for (int j = 0; j < T; ++j) {
-      int p = HTW + j - W + w;
+    for (int j = 0; j < T && w + j < W; ++j) {
+      int p = HTW - W + j + w;
       while (blocks[p]) p -= W;
       for (int i = T - 1; i >= 0; --i) {
         const int v = pack.blocks[i][j];
         if (v) {
           blocks[p] = v;
+          setCheck(check, task, size, p);
           p -= W;
         }
       }
     }
-
     obs = chain(check, task, size);
 
-    for (int i = 0; i < W * 3; ++i) {
+    for (int i = W * 2; i < W * 3; ++i) {
       if (blocks[i]) return false;
     }
     {  // value
@@ -290,6 +301,7 @@ class Field {
           Field f = *this;
           memset(check, true, sizeof(check));
           size = 0;
+          setCheck(check, task, size, p);
           f.blocks[p] = b;
           int obs = f.chain(check, task, size);
           if (value < obs) value = obs;
@@ -383,7 +395,7 @@ void execute() {
             if (p[0][a] | p[1][a] | p[2][a]) break;
             --left;
           }
-          for (int a = T - 1; a >= 0; --a) {
+          for (int a = T - 1; a > 0; --a) {
             if (p[0][a] | p[1][a] | p[2][a]) break;
             ++right;
           }
