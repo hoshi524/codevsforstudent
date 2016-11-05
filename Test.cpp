@@ -11,7 +11,7 @@ static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
-// static const int width = 120;  // prod
+// static const int width = 200;  // prod
 static const int width = 15;  // test
 static const int depth = 10;
 
@@ -295,6 +295,42 @@ class Field {
     return score / 5;
   }
 
+  int chainBit(int i, int j) {
+    int x = 0;
+    for (int d = -1; d <= 1; ++d) {
+      int li = i, lj = j, ri = i, rj = j, sum = 0;
+      while (0 <= lj - 1 && 0 <= li + d && li + d < HT &&
+             blocks[li + d][lj - 1] && sum + blocks[li + d][lj - 1] < S) {
+        li += d;
+        lj -= 1;
+        sum += blocks[li][lj];
+        x |= 1 << (S - sum);
+      }
+      while (rj + 1 < W && 0 <= ri - d && ri - d < HT &&
+             blocks[ri - d][rj + 1] && blocks[ri - d][rj + 1] < OBSTACLE) {
+        ri -= d;
+        rj += 1;
+        sum += blocks[ri][rj];
+        if (sum < S) {
+          x |= 1 << (S - sum);
+        } else {
+          while (lj < j) {
+            sum -= blocks[li][lj];
+            li -= d;
+            lj += 1;
+            if (sum < S) break;
+          }
+          if (sum < S) {
+            x |= 1 << (S - sum);
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    return x;
+  }
+
   bool next(const Pack &p, const int w) {
     bool check[6][HT];
     memset(check, true, sizeof(check));
@@ -329,14 +365,17 @@ class Field {
       for (int i = 0; i < W / 2; ++i) {
         int w = highRank[i] & 0xf;
         int h = highRank[i] >> 4;
+        int bit = chainBit(h, w);
         for (int b = 1; b < S; ++b) {
-          Field f = *this;
-          memset(check, true, sizeof(check));
-          size = 0;
-          f.setCheck(check, task, size, h, w);
-          f.blocks[h][w] = b;
-          int obs = f.chain(check, task, size);
-          if (value < obs) value = obs;
+          if (bit & (1 << b)) {
+            Field f = *this;
+            memset(check, true, sizeof(check));
+            size = 0;
+            f.setCheck(check, task, size, h, w);
+            f.blocks[h][w] = b;
+            int obs = f.chain(check, task, size);
+            if (value < obs) value = obs;
+          }
         }
       }
       value <<= 10;
