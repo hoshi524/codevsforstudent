@@ -295,7 +295,7 @@ class Field {
     return score / 5;
   }
 
-  int chainBit(int i, int j) {
+  int chainBit(const int i, const int j) {
     int x = 0;
     for (int d = -1; d <= 1; ++d) {
       int li = i, lj = j, ri = i, rj = j, sum = 0;
@@ -364,7 +364,7 @@ class Field {
       sort(highRank, highRank + W, greater<int>());
 
       int maxobs = 0;
-      for (int i = 0; i < W / 2; ++i) {
+      for (int i = 0; i < (W * 2 / 3); ++i) {
         int w = highRank[i] & 0xf;
         int h = highRank[i] >> 4;
         int bit = chainBit(h, w);

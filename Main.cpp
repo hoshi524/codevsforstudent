@@ -364,7 +364,7 @@ class Field {
       sort(highRank, highRank + W, greater<int>());
 
       int maxobs = 0;
-      for (int i = 0; i < W / 2; ++i) {
+      for (int i = 0; i < (W * 2 / 3); ++i) {
         int w = highRank[i] & 0xf;
         int h = highRank[i] >> 4;
         int bit = chainBit(h, w);
