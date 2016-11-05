@@ -318,9 +318,17 @@ class Field {
     }
     {  // value
       value = 0;
+      int highRank[W];
       for (int w = 0; w < W; ++w) {
         int h = HT - 1;
         while (blocks[h][w]) --h;
+        highRank[w] = (h << 4) + w;
+      }
+      sort(highRank, highRank + W, greater<int>());
+
+      for (int i = 0; i < W / 2; ++i) {
+        int w = highRank[i] & 0xf;
+        int h = highRank[i] >> 4;
         for (int b = 1; b < S; ++b) {
           Field f = *this;
           memset(check, true, sizeof(check));
