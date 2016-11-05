@@ -378,13 +378,11 @@ class Field {
           }
         }
       }
-      value <<= 10;
+      value <<= 5;
       for (int i = T; i < HT; ++i) {
         for (int j = 0; j < W; ++j) {
-          if (blocks[i][j] == OBSTACLE) {
-            value += i;
-          } else if (blocks[i][j]) {
-            value += S - blocks[i][j] + HT - i;
+          if (blocks[i][j]) {
+            ++value;
           }
         }
       }
