@@ -380,7 +380,7 @@ class Field {
           }
         }
       }
-      value += maxobs << 5;
+      value += maxobs << 4;
     }
     return true;
   }
@@ -551,7 +551,7 @@ void execute() {
             }
             search[i + 1].push(c);
 
-            int tv = c.value + (c.obs << 22) - (i << 20);
+            int tv = c.value + (c.obs << 10) - (i << 8);
             if (value < tv) {
               value = tv;
               pos = c.pos;
