@@ -359,9 +359,11 @@ class Field {
         int h = HT - 1;
         while (blocks[h][w]) --h;
         highRank[w] = (h << 4) + w;
+        value += HT - 1 - h;
       }
       sort(highRank, highRank + W, greater<int>());
 
+      int maxobs = 0;
       for (int i = 0; i < W / 2; ++i) {
         int w = highRank[i] & 0xf;
         int h = highRank[i] >> 4;
@@ -374,18 +376,11 @@ class Field {
             f.setCheck(check, task, size, h, w);
             f.blocks[h][w] = b;
             int obs = f.chain(check, task, size);
-            if (value < obs) value = obs;
+            if (maxobs < obs) maxobs = obs;
           }
         }
       }
-      value <<= 5;
-      for (int i = T; i < HT; ++i) {
-        for (int j = 0; j < W; ++j) {
-          if (blocks[i][j]) {
-            ++value;
-          }
-        }
-      }
+      value += maxobs << 5;
     }
     return true;
   }
