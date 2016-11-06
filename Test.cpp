@@ -269,8 +269,8 @@ class Field {
     bool del[HT][W];
     int score = 0;
     double chain = 1;
+    memset(del, false, sizeof(del));
     while (true) {
-      memset(del, false, sizeof(del));
       int e = setDelete(task, size, del);
       if (e == 0) break;
 
@@ -279,6 +279,7 @@ class Field {
       for (int j = 0; j < W; ++j) {
         for (int i = HT - 1, k = 0; i >= 0 && blocks[i][j]; --i) {
           if (del[i][j]) {
+            del[i][j] = false;
             blocks[i][j] = EMPTY;
             if (k == 0) k = i;
           } else if (k) {
