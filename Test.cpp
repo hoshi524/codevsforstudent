@@ -472,7 +472,7 @@ bool checkOpp(const int obs) {
   search[0].push(opField);
   for (int n = 0; n < node; ++n) {
     for (int i = 0; i < depth; ++i) {
-      if (!search[i].empty()) {
+      for (int j = 0; j < 10 && !search[i].empty(); ++j) {
         Field field = search[i].top();
         search[i].pop();
         for (int r = 0; r < 4; ++r) {
@@ -543,12 +543,12 @@ void execute() {
     }
   }
   int value = INT_MIN, pos, rot, ti = -1, obs;
-  int depth = min(myField.calcDepth(), N - turn);
+  int depth = min(myField.calcDepth(), N - turn), n;
   priority_queue<Field> search[depth + 1];
   search[0].push(myField);
-  for (int n = 0; n < node; ++n) {
+  for (n = 0; n < node; ++n) {
     for (int i = 0; i < depth; ++i) {
-      if (!search[i].empty()) {
+      for (int j = 0; j < 10 && !search[i].empty(); ++j) {
         ++n;
         Field field = search[i].top();
         search[i].pop();
@@ -590,6 +590,7 @@ void execute() {
     }
   }
   printf("%d %d\n", pos, rot);
+  // cerr << n << endl;
   if (ti == 0 && obs > 0) {
     cerr << "turn : obs  " << turn << " : " << obs << endl;
   }
