@@ -474,6 +474,7 @@ bool checkOpp(const int obs) {
   for (int n = 0; n < node; ++n) {
     for (int i = 0; i < depth; ++i) {
       for (int j = 0; j < 10 && !search[i].empty(); ++j) {
+        ++n;
         Field field = search[i].top();
         search[i].pop();
         for (int r = 0; r < 4; ++r) {
