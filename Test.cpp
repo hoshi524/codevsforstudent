@@ -353,6 +353,7 @@ class Field {
     for (int i = 0; i < W; ++i) {
       if (blocks[T - 1][i]) return false;
     }
+    if (obs) return true;
     {  // value
       value = 0;
       int highRank[W];
@@ -572,15 +573,17 @@ void execute() {
                 c.rot = r;
                 c.pos = w;
               }
-              search[i + 1].push(c);
-
-              int tv = c.value + (c.obs << 10) - (i << 8);
-              if (value < tv) {
-                value = tv;
-                pos = c.pos;
-                rot = c.rot;
-                obs = c.obs;
-                ti = i;
+              if (c.obs) {
+                int tv = (c.obs << 1) - i;
+                if (value < tv) {
+                  value = tv;
+                  pos = c.pos;
+                  rot = c.rot;
+                  obs = c.obs;
+                  ti = i;
+                }
+              } else {
+                search[i + 1].push(c);
               }
             }
           }
