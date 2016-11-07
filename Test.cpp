@@ -12,6 +12,7 @@ static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
+static const int minute = 60 * 1000;
 // static const int node = 1100;  // prod
 static const int node = 200;  // test
 
@@ -481,7 +482,7 @@ bool checkOpp(const int obs) {
   int depth = min(opField.calcDepth(), N - turn);
   priority_queue<Field> search[depth + 1];
   search[0].push(opField);
-  for (int n = 0; n < node * 2; ++n) {
+  for (int n = 0; n < (node << 1); ++n) {
     for (int i = 0; i < depth; ++i) {
       for (int j = 0; j < 10 && !search[i].empty(); ++j) {
         ++n;
@@ -558,7 +559,7 @@ void execute() {
   int depth = min(myField.calcDepth(), N - turn), n;
   priority_queue<Field> search[depth + 1];
   search[0].push(myField);
-  for (n = 0; n < node * (turn < 30 ? 4 : 1); ++n) {
+  for (n = 0; n < (node << (time > minute ? 2 : 0)); ++n) {
     for (int i = 0; i < depth; ++i) {
       for (int j = 0; j < 10 && !search[i].empty(); ++j) {
         ++n;
