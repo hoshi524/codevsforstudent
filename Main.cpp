@@ -12,8 +12,8 @@ static const int EMPTY = 0;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
-static const int node = 1000;  // prod
-// static const int node = 500;  // test
+// static const int node = 1100;  // prod
+static const int node = 200;  // test
 
 class Pack {
  public:
@@ -218,49 +218,59 @@ class Field {
     return e;
   }
 
+  inline bool isValid(const int v, const int i, const int j) {
+    return 0 <= i && i < HT && 0 <= j && j < W && blocks[i][j] &&
+           v + blocks[i][j] <= S;
+  }
+
   inline void setCheck(bool (&check)[6][HT], int (&task)[tasksize][2],
                        int &size, const int i, const int j) {
-    if (blocks[i][j] == OBSTACLE) return;
-    if (check[0][j]) {
+    int v = blocks[i][j];
+    if (v == OBSTACLE) return;
+    if (check[0][j] && isValid(v, i + 1, j)) {
       check[0][j] = false;
       task[size][0] = 0;
       task[size][1] = j;
       ++size;
     }
-    if (check[3][i]) {
+    if (check[3][i] && (isValid(v, i, j - 1) || isValid(v, i, j + 1))) {
       check[3][i] = false;
       task[size][0] = 3;
       task[size][1] = i;
       ++size;
     }
-    if (HT - i - 1 <= j) {
-      if (check[1][j - (HT - i - 1)]) {
-        check[1][j - (HT - i - 1)] = false;
-        task[size][0] = 1;
-        task[size][1] = j - (HT - i - 1);
-        ++size;
-      }
-    } else {
-      if (check[4][i + j]) {
-        check[4][i + j] = false;
-        task[size][0] = 4;
-        task[size][1] = i + j;
-        ++size;
+    if (isValid(v, i + 1, j - 1) || isValid(v, i - 1, j + 1)) {
+      if (HT - i - 1 <= j) {
+        if (check[1][j - (HT - i - 1)]) {
+          check[1][j - (HT - i - 1)] = false;
+          task[size][0] = 1;
+          task[size][1] = j - (HT - i - 1);
+          ++size;
+        }
+      } else {
+        if (check[4][i + j]) {
+          check[4][i + j] = false;
+          task[size][0] = 4;
+          task[size][1] = i + j;
+          ++size;
+        }
       }
     }
-    if (HT - i - 1 < W - j) {
-      if (check[2][j + (HT - i - 1)]) {
-        check[2][j + (HT - i - 1)] = false;
-        task[size][0] = 2;
-        task[size][1] = j + (HT - i - 1);
-        ++size;
-      }
-    } else {
-      if (check[5][i + (W - j - 1)]) {
-        check[5][i + (W - j - 1)] = false;
-        task[size][0] = 5;
-        task[size][1] = i + (W - j - 1);
-        ++size;
+    if (isValid(v, i - 1, j - 1) || isValid(v, i + 1, j + 1)) {
+      if (HT - i - 1 < W - j) {
+        if (check[2][j + (HT - i - 1)]) {
+          check[2][j + (HT - i - 1)] = false;
+          task[size][0] = 2;
+          task[size][1] = j + (HT - i - 1);
+          ++size;
+        }
+      } else {
+        if (check[5][i + (W - j - 1)]) {
+          check[5][i + (W - j - 1)] = false;
+          task[size][0] = 5;
+          task[size][1] = i + (W - j - 1);
+          ++size;
+        }
       }
     }
   }
