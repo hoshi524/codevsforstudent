@@ -302,7 +302,7 @@ class Field {
         }
       }
       chain *= 1.3;
-      score += (int)chain * (e / 2);
+      score += (int)chain * (e >> 1);
     }
     return score / 5;
   }
