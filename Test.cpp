@@ -5,10 +5,12 @@ static const int W = 10;
 static const int H = 16;
 static const int HW = H * W;
 static const int T = 3;
-static const int HT = H + T;
+static const int WT = W + 2;
+static const int HT = H + T + 2;
 static const int S = 10;
 static const int N = 500;
 static const int EMPTY = 0;
+static const int WALL = -1;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
@@ -65,18 +67,27 @@ class Pack {
 
 class Field {
  public:
-  char blocks[HT][W];
+  char blocks[HT][WT];
   int pos, rot, obs, value;
 
   Field() { memset(blocks, 0, sizeof(blocks)); }
   Field(const Field &x) { memcpy(this, &x, sizeof(x)); }
 
   void input() {
-    for (int i = T; i < HT; ++i) {
-      for (int j = 0; j < W; ++j) {
+    memset(blocks, EMPTY, sizeof(blocks));
+    for (int i = 0; i < WT; ++i) {
+      blocks[0][i] = WALL;
+      blocks[HT - 1][i] = WALL;
+    }
+    for (int i = 0; i < HT; ++i) {
+      blocks[i][0] = WALL;
+      blocks[i][WT - 1] = WALL;
+    }
+    for (int i = 0; i < H; ++i) {
+      for (int j = 1; j <= W; ++j) {
         int block;
         cin >> block;
-        blocks[i][j] = block;
+        blocks[i + T + 1][j] = block;
       }
     }
     string end;
@@ -84,14 +95,14 @@ class Field {
   }
 
   inline int setDelete(const int (&task)[tasksize][2], const int size,
-                       bool (&del)[HT][W]) {
+                       bool (&del)[HT][WT]) {
     int e = 0;
     for (int t = 0; t < size; ++t) {
       int i = task[t][1];
       switch (task[t][0]) {
         case 0:
           // 上
-          for (int j = HT - 1, kj = j, sum = 0; j >= 0 && blocks[j][i]; --j) {
+          for (int j = HT - 2, kj = j, sum = 0; blocks[j][i] > 0; --j) {
             sum += blocks[j][i];
             while (sum > S) {
               sum -= blocks[kj][i];
@@ -105,8 +116,8 @@ class Field {
           break;
         case 1:
           // 右上
-          for (int tj = HT - 1, ti = i, kj = tj, ki = ti, sum = 0; ti < W;
-               --tj, ++ti) {
+          for (int tj = HT - 2, ti = i, kj = tj, ki = ti, sum = 0;
+               blocks[tj][ti] >= 0; --tj, ++ti) {
             if (blocks[tj][ti]) {
               sum += blocks[tj][ti];
               while (sum > S) {
@@ -128,8 +139,8 @@ class Field {
           break;
         case 2:
           // 左上
-          for (int tj = HT - 1, ti = i, kj = tj, ki = ti, sum = 0; ti >= 0;
-               --tj, --ti) {
+          for (int tj = HT - 2, ti = i, kj = tj, ki = ti, sum = 0;
+               blocks[tj][ti] >= 0; --tj, --ti) {
             if (blocks[tj][ti]) {
               sum += blocks[tj][ti];
               while (sum > S) {
@@ -151,7 +162,7 @@ class Field {
           break;
         case 3:
           // 右
-          for (int j = 0, kj = j, sum = 0; j < W; ++j) {
+          for (int j = 1, kj = j, sum = 0; blocks[i][j] >= 0; ++j) {
             if (blocks[i][j]) {
               sum += blocks[i][j];
               while (sum > S) {
@@ -170,8 +181,8 @@ class Field {
           break;
         case 4:
           // 右上
-          for (int ti = i, tj = 0, ki = ti, kj = tj, sum = 0; ti >= 0 && tj < W;
-               --ti, ++tj) {
+          for (int ti = i, tj = 1, ki = ti, kj = tj, sum = 0;
+               blocks[ti][tj] >= 0; --ti, ++tj) {
             if (blocks[ti][tj]) {
               sum += blocks[ti][tj];
               while (sum > S) {
@@ -193,8 +204,8 @@ class Field {
           break;
         case 5:
           // 左上
-          for (int ti = i, tj = W - 1, ki = ti, kj = tj, sum = 0;
-               ti >= 0 && tj >= 0; --ti, --tj) {
+          for (int ti = i, tj = W, ki = ti, kj = tj, sum = 0;
+               blocks[ti][tj] >= 0; --ti, --tj) {
             if (blocks[ti][tj]) {
               sum += blocks[ti][tj];
               while (sum > S) {
@@ -220,14 +231,14 @@ class Field {
   }
 
   inline bool isValid(const int v, const int i, const int j) {
-    return 0 <= i && i < HT && 0 <= j && j < W && blocks[i][j] &&
-           v + blocks[i][j] <= S;
+    return blocks[i][j] > 0 && v + blocks[i][j] <= S;
   }
 
   inline void setCheck(bool (&check)[6][HT], int (&task)[tasksize][2],
                        int &size, const int i, const int j) {
     int v = blocks[i][j];
     if (v == OBSTACLE) return;
+    int h = HT - i - 2, w = j - 1;
     if (check[0][j] && isValid(v, i + 1, j)) {
       check[0][j] = false;
       task[size][0] = 0;
@@ -241,35 +252,35 @@ class Field {
       ++size;
     }
     if (isValid(v, i + 1, j - 1) || isValid(v, i - 1, j + 1)) {
-      if (HT - i - 1 <= j) {
-        if (check[1][j - (HT - i - 1)]) {
-          check[1][j - (HT - i - 1)] = false;
+      if (h <= w) {
+        if (check[1][w - h + 1]) {
+          check[1][w - h + 1] = false;
           task[size][0] = 1;
-          task[size][1] = j - (HT - i - 1);
+          task[size][1] = w - h + 1;
           ++size;
         }
       } else {
-        if (check[4][i + j]) {
-          check[4][i + j] = false;
+        if (check[4][i + w]) {
+          check[4][i + w] = false;
           task[size][0] = 4;
-          task[size][1] = i + j;
+          task[size][1] = i + w;
           ++size;
         }
       }
     }
     if (isValid(v, i - 1, j - 1) || isValid(v, i + 1, j + 1)) {
-      if (HT - i - 1 < W - j) {
-        if (check[2][j + (HT - i - 1)]) {
-          check[2][j + (HT - i - 1)] = false;
+      if (h < W - w) {
+        if (check[2][j + h]) {
+          check[2][j + h] = false;
           task[size][0] = 2;
-          task[size][1] = j + (HT - i - 1);
+          task[size][1] = j + h;
           ++size;
         }
       } else {
-        if (check[5][i + (W - j - 1)]) {
-          check[5][i + (W - j - 1)] = false;
+        if (check[5][i + (W - j)]) {
+          check[5][i + (W - j)] = false;
           task[size][0] = 5;
-          task[size][1] = i + (W - j - 1);
+          task[size][1] = i + (W - j);
           ++size;
         }
       }
@@ -277,7 +288,7 @@ class Field {
   }
 
   int chain(bool (&check)[6][HT], int (&task)[tasksize][2], int &size) {
-    bool del[HT][W];
+    bool del[HT][WT];
     int score = 0;
     double chain = 1;
     memset(del, false, sizeof(del));
@@ -287,8 +298,8 @@ class Field {
 
       memset(check, true, sizeof(check));
       size = 0;
-      for (int j = 0; j < W; ++j) {
-        for (int i = HT - 1, k = 0; i >= 0 && blocks[i][j]; --i) {
+      for (int j = 1; j <= W; ++j) {
+        for (int i = HT - 2, k = 0; blocks[i][j] > 0; --i) {
           if (del[i][j]) {
             del[i][j] = false;
             blocks[i][j] = EMPTY;
@@ -311,15 +322,13 @@ class Field {
     int x = 0;
     for (int d = -1; d <= 1; ++d) {
       int li = i, lj = j, ri = i, rj = j, sum = 0;
-      while (0 <= lj - 1 && 0 <= li + d && li + d < HT &&
-             blocks[li + d][lj - 1] && sum + blocks[li + d][lj - 1] < S) {
+      while (blocks[li + d][lj - 1] > 0 && sum + blocks[li + d][lj - 1] < S) {
         li += d;
         lj -= 1;
         sum += blocks[li][lj];
         x |= 1 << (S - sum);
       }
-      while (rj + 1 < W && 0 <= ri - d && ri - d < HT &&
-             blocks[ri - d][rj + 1] && blocks[ri - d][rj + 1] < OBSTACLE) {
+      while (blocks[ri - d][rj + 1] > 0 && blocks[ri - d][rj + 1] < OBSTACLE) {
         ri -= d;
         rj += 1;
         sum += blocks[ri][rj];
@@ -348,30 +357,30 @@ class Field {
     memset(check, true, sizeof(check));
     int task[tasksize][2], size = 0;
     for (int j = 0; j < T; ++j) {
-      int h = HT - 1;
-      while (blocks[h][w + j]) --h;
+      int h = HT - 2;
+      while (blocks[h][w + j + 1]) --h;
       for (int i = T - 1; i >= 0; --i) {
         const int v = p.blocks[i][j];
         if (v) {
-          setCheck(check, task, size, h, w + j);
-          blocks[h--][w + j] = v;
+          setCheck(check, task, size, h, w + j + 1);
+          blocks[h--][w + j + 1] = v;
         }
       }
     }
 
     obs = chain(check, task, size);
 
-    for (int i = 0; i < W; ++i) {
-      if (blocks[T - 1][i]) return false;
+    for (int i = 1; i <= W; ++i) {
+      if (blocks[T][i]) return false;
     }
     if (obs) return true;
     {  // value
       value = 0;
       int highRank[W];
-      for (int w = 0; w < W; ++w) {
-        int h = HT - 1;
+      for (int w = 1; w <= W; ++w) {
+        int h = HT - 2;
         while (blocks[h][w]) --h;
-        highRank[w] = (h << 4) + w;
+        highRank[w - 1] = (h << 4) + w;
         value += HT - 1 - h;
       }
       sort(highRank, highRank + W, greater<int>());
@@ -400,8 +409,8 @@ class Field {
 
   int calcDepth() {
     int block = 0, allblock = 0;
-    for (int i = 0; i < HT; ++i) {
-      for (int j = 0; j < W; ++j) {
+    for (int i = 1; i + 1 < HT; ++i) {
+      for (int j = 1; j <= W; ++j) {
         if (blocks[i][j] && blocks[i][j] < OBSTACLE) ++block;
         if (blocks[i][j]) ++allblock;
       }
@@ -415,9 +424,9 @@ class Field {
   }
 
   void show() {
-    for (int i = 0; i < H; ++i) {
-      for (int j = 0; j < W; ++j) {
-        cerr << blocks[i + T][j] << " ";
+    for (int i = 0; i < HT; ++i) {
+      for (int j = 0; j < WT; ++j) {
+        cerr << (int)blocks[i][j] << " ";
       }
       cerr << endl;
     }
@@ -431,7 +440,7 @@ inline bool operator<(const Field &left, const Field &right) {
 
 inline bool operator!=(const Field &left, const Field &right) {
   for (int i = 0; i < HT; ++i) {
-    for (int j = 0; j < W; ++j) {
+    for (int j = 0; j < WT; ++j) {
       if (left.blocks[i][j] != right.blocks[i][j]) return true;
     }
   }
@@ -466,6 +475,9 @@ bool inputTurn() {
   opField.input();
   if (turn > 0 && prev != myField) {
     // cerr << "diff" << endl;
+    // prev.show();
+    // myField.show();
+    // exit(1);
   }
   return true;
 }
