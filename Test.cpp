@@ -1,3 +1,4 @@
+#define NDEBUG
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -70,7 +71,7 @@ class Field {
   char blocks[HT][WT];
   int pos, rot, obs, value;
 
-  Field() { memset(blocks, 0, sizeof(blocks)); }
+  Field() {}
   Field(const Field &x) { memcpy(this, &x, sizeof(x)); }
 
   void input() {
@@ -96,6 +97,7 @@ class Field {
 
   inline int setDelete(const int (&task)[tasksize][2], const int size,
                        bool (&del)[HT][WT]) {
+    assert(size < tasksize);
     int e = 0;
     for (int t = 0; t < size; ++t) {
       int i = task[t][1];
@@ -238,6 +240,8 @@ class Field {
                        int &size, const int i, const int j) {
     int v = blocks[i][j];
     if (v == OBSTACLE) return;
+    assert(0 < v && v < S);
+
     int h = HT - i - 2, w = j - 1;
     if (check[0][j] && isValid(v, i + 1, j)) {
       check[0][j] = false;
@@ -448,6 +452,10 @@ inline bool operator!=(const Field &left, const Field &right) {
   return false;
 }
 
+inline bool operator==(const Field &left, const Field &right) {
+  return !(left != right);
+}
+
 namespace State {
 int turn;
 int time;
@@ -474,12 +482,7 @@ bool inputTurn() {
   myField.input();
   cin >> opObstacle;
   opField.input();
-  if (turn > 0 && prev != myField) {
-    // cerr << "diff" << endl;
-    // prev.show();
-    // myField.show();
-    // exit(1);
-  }
+  assert(turn == 0 || prev == myField);
   return true;
 }
 
@@ -634,7 +637,6 @@ void execute() {
 
 int main() {
   printf("hoshi524\n");
-
   State::input();
   while (State::inputTurn()) {
     State::execute();
