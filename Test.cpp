@@ -323,34 +323,26 @@ class Field {
   }
 
   int chainBit(const int i, const int j) {
-    int x = 0;
+    assert(blocks[i][j] == 0);
+    int x = 0, z[W];
     for (int d = -1; d <= 1; ++d) {
-      int li = i, lj = j, ri = i, rj = j, sum = 0;
-      while (blocks[li + d][lj - 1] > 0 && sum + blocks[li + d][lj - 1] < S) {
-        li += d;
-        lj -= 1;
-        sum += blocks[li][lj];
+      int a = i + d, b = j - 1, sum = 0, size = 0;
+      while (blocks[a][b] > 0 && sum + blocks[a][b] < S) {
+        sum += blocks[a][b];
         x |= 1 << (S - sum);
+        z[size++] = sum;
+        a += d;
+        b -= 1;
       }
-      while (blocks[ri - d][rj + 1] > 0 && blocks[ri - d][rj + 1] < OBSTACLE) {
-        ri -= d;
-        rj += 1;
-        sum += blocks[ri][rj];
-        if (sum < S) {
-          x |= 1 << (S - sum);
-        } else {
-          while (lj < j) {
-            sum -= blocks[li][lj];
-            li -= d;
-            lj += 1;
-            if (sum < S) break;
-          }
-          if (sum < S) {
-            x |= 1 << (S - sum);
-          } else {
-            break;
-          }
+      a = i - d, b = j + 1, sum = 0;
+      while (blocks[a][b] > 0 && sum + blocks[a][b] < S) {
+        sum += blocks[a][b];
+        x |= 1 << (S - sum);
+        for (int k = 0; k < size && sum + z[k] < S; ++k) {
+          x |= 1 << (S - sum - z[k]);
         }
+        a -= d;
+        b += 1;
       }
     }
     return x;
