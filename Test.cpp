@@ -16,7 +16,7 @@ static const int target = 80;
 static const int tasksize = 70;
 static const int minute = 60 * 1000;
 // static const int node = 1100;  // prod
-static const int node = 200;  // test
+static const int node = 100;  // test
 
 class Pack {
  public:
@@ -362,8 +362,9 @@ class Field {
       for (int i = T - 1; i >= 0; --i) {
         const int v = p.blocks[i][j];
         if (v) {
+          blocks[h][w + j + 1] = v;
           setCheck(check, task, size, h, w + j + 1);
-          blocks[h--][w + j + 1] = v;
+          --h;
         }
       }
     }
@@ -395,8 +396,8 @@ class Field {
             Field f = *this;
             memset(check, true, sizeof(check));
             size = 0;
-            f.setCheck(check, task, size, h, w);
             f.blocks[h][w] = b;
+            f.setCheck(check, task, size, h, w);
             int obs = f.chain(check, task, size);
             if (maxobs < obs) maxobs = obs;
           }
