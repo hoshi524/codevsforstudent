@@ -16,7 +16,7 @@ static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
 static const int minute = 60 * 1000;
-// static const int node = 1100;  // prod
+// static const int node = 1000;  // prod
 static const int node = 100;  // test
 
 class Pack {
