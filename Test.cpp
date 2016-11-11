@@ -459,6 +459,7 @@ inline bool operator==(const Field &left, const Field &right) {
 namespace State {
 int turn;
 int time;
+int prevturn = INT_MIN;
 Pack packs[N];
 Field myField;
 Field opField;
@@ -482,7 +483,7 @@ bool inputTurn() {
   myField.input();
   cin >> opObstacle;
   opField.input();
-  assert(turn == 0 || prev == myField);
+  assert(turn != prevturn + 1 || prev == myField);
   return true;
 }
 
@@ -631,6 +632,7 @@ void execute() {
       np[0].rotate();
     }
     prev.next(np[0], pos);
+    prevturn = turn;
   }
 }
 };
