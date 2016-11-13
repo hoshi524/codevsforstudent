@@ -1,4 +1,4 @@
-#define NDEBUG
+// #define NDEBUG
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -16,8 +16,11 @@ static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
 static const int minute = 60 * 1000;
-// static const int node = 1000;  // prod
+#ifdef NDEBUG
+static const int node = 1000;  // prod
+#else
 static const int node = 100;  // test
+#endif
 
 class Pack {
  public:
@@ -237,8 +240,8 @@ class Field {
   }
 
   inline void setCheck(bool (&check)[6][HT], int (&task)[tasksize][2],
-                       int &size, const int i, const int j) {
-    int v = blocks[i][j];
+                       int &size, const int i, const int j, const int v) {
+    blocks[i][j] = v;
     if (v == OBSTACLE) return;
     assert(0 < v && v < S);
 
@@ -309,8 +312,7 @@ class Field {
             blocks[i][j] = EMPTY;
             if (k == 0) k = i;
           } else if (k) {
-            blocks[k][j] = blocks[i][j];
-            setCheck(check, task, size, k, j);
+            setCheck(check, task, size, k, j, blocks[i][j]);
             blocks[i][j] = EMPTY;
             --k;
           }
@@ -358,8 +360,7 @@ class Field {
       for (int i = T - 1; i >= 0; --i) {
         const int v = p.blocks[i][j];
         if (v) {
-          blocks[h][w + j + 1] = v;
-          setCheck(check, task, size, h, w + j + 1);
+          setCheck(check, task, size, h, w + j + 1, v);
           --h;
         }
       }
@@ -392,8 +393,7 @@ class Field {
             Field f = *this;
             memset(check, true, sizeof(check));
             size = 0;
-            f.blocks[h][w] = b;
-            f.setCheck(check, task, size, h, w);
+            f.setCheck(check, task, size, h, w, b);
             int obs = f.chain(check, task, size);
             if (maxobs < obs) maxobs = obs;
           }
