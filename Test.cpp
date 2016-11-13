@@ -17,7 +17,7 @@ static const int target = 80;
 static const int tasksize = 70;
 static const int minute = 60 * 1000;
 #ifdef NDEBUG
-static const int node = 1000;  // prod
+static const int node = 1100;  // prod
 #else
 static const int node = 100;  // test
 #endif
@@ -66,6 +66,19 @@ class Pack {
         blocks[j][T - 1 - i] = tmp[i][j];
       }
     }
+  }
+
+  pair<int, int> getLeftRight() {
+    int left = 0, right = W - T + 1;
+    for (int a = 0; a < T; ++a) {
+      if (blocks[0][a] | blocks[1][a] | blocks[2][a]) break;
+      --left;
+    }
+    for (int a = T - 1; a >= 0; --a) {
+      if (blocks[0][a] | blocks[1][a] | blocks[2][a]) break;
+      ++right;
+    }
+    return make_pair(left, right);
   }
 };
 
@@ -371,37 +384,38 @@ class Field {
     for (int i = 1; i <= W; ++i) {
       if (blocks[T][i]) return false;
     }
-    if (obs) return true;
-    {  // value
-      value = 0;
-      int highRank[W];
-      for (int w = 1; w <= W; ++w) {
-        int h = HT - 2;
-        while (blocks[h][w]) --h;
-        highRank[w - 1] = (h << 4) + w;
-        value += HT - 1 - h;
-      }
-      sort(highRank, highRank + W, greater<int>());
+    return true;
+  }
 
-      int maxobs = 0;
-      for (int i = 0; i < (W * 2 / 3); ++i) {
-        int w = highRank[i] & 0xf;
-        int h = highRank[i] >> 4;
-        int bit = chainBit(h, w);
-        for (int b = 1; b < S; ++b) {
-          if (bit & (1 << b)) {
-            Field f = *this;
-            memset(check, true, sizeof(check));
-            size = 0;
-            f.setCheck(check, task, size, h, w, b);
-            int obs = f.chain(check, task, size);
-            if (maxobs < obs) maxobs = obs;
-          }
+  void calcValue() {
+    value = 0;
+    int highRank[W];
+    bool check[6][HT];
+    int task[tasksize][2], size = 0;
+    for (int w = 1; w <= W; ++w) {
+      int h = HT - 2;
+      while (blocks[h][w]) --h;
+      highRank[w - 1] = (h << 4) + w;
+      value += HT - 1 - h;
+    }
+    sort(highRank, highRank + W, greater<int>());
+    int maxobs = 0;
+    for (int i = 0; i < (W * 2 / 3); ++i) {
+      int w = highRank[i] & 0xf;
+      int h = highRank[i] >> 4;
+      int bit = chainBit(h, w);
+      for (int b = 1; b < S; ++b) {
+        if (bit & (1 << b)) {
+          Field f = *this;
+          memset(check, true, sizeof(check));
+          size = 0;
+          f.setCheck(check, task, size, h, w, b);
+          int obs = f.chain(check, task, size);
+          if (maxobs < obs) maxobs = obs;
         }
       }
-      value += maxobs << 4;
     }
-    return true;
+    value += maxobs << 4;
   }
 
   int calcDepth() {
@@ -492,29 +506,21 @@ bool checkOpp(const int obs) {
   priority_queue<Field> search[depth + 1];
   search[0].push(opField);
   for (int n = 0; n < (node << 1); ++n) {
-    for (int i = 0; i < depth; ++i) {
+    for (int i = 0; i <= depth; ++i) {
       for (int j = 0; j < 10 && !search[i].empty(); ++j) {
         ++n;
         Field field = search[i].top();
         search[i].pop();
         for (int r = 0; r < 4; ++r) {
-          int left = 0, right = W - T + 1;
-          {
-            int(&p)[T][T] = np[i].blocks;
-            for (int a = 0; a < T; ++a) {
-              if (p[0][a] | p[1][a] | p[2][a]) break;
-              --left;
-            }
-            for (int a = T - 1; a >= 0; --a) {
-              if (p[0][a] | p[1][a] | p[2][a]) break;
-              ++right;
-            }
-          }
-          for (int w = left; w < right; ++w) {
+          auto lr = np[i].getLeftRight();
+          for (int w = lr.first, ws = lr.second; w < ws; ++w) {
             Field c = field;
             if (c.next(np[i], w)) {
               if (obs <= c.obs) return false;
-              search[i + 1].push(c);
+              if (i < depth) {
+                c.calcValue();
+                search[i + 1].push(c);
+              }
             }
           }
           np[i].rotate();
@@ -534,19 +540,8 @@ void execute() {
   {
     int pos, rot, obs = 0;
     for (int r = 0; r < 4; ++r) {
-      int left = 0, right = W - T + 1;
-      {
-        int(&p)[T][T] = np[0].blocks;
-        for (int a = 0; a < T; ++a) {
-          if (p[0][a] | p[1][a] | p[2][a]) break;
-          --left;
-        }
-        for (int a = T - 1; a >= 0; --a) {
-          if (p[0][a] | p[1][a] | p[2][a]) break;
-          ++right;
-        }
-      }
-      for (int w = left; w < right; ++w) {
+      auto lr = np[0].getLeftRight();
+      for (int w = lr.first, ws = lr.second; w < ws; ++w) {
         Field c = myField;
         if (c.next(np[0], w)) {
           if (obs < c.obs) {
@@ -569,25 +564,14 @@ void execute() {
   priority_queue<Field> search[depth + 1];
   search[0].push(myField);
   for (n = 0; n < (node << (time > minute ? 2 : 0)); ++n) {
-    for (int i = 0; i < depth; ++i) {
+    for (int i = 0; i <= depth; ++i) {
       for (int j = 0; j < 10 && !search[i].empty(); ++j) {
         ++n;
         Field field = search[i].top();
         search[i].pop();
         for (int r = 0; r < 4; ++r) {
-          int left = 0, right = W - T + 1;
-          {
-            int(&p)[T][T] = np[i].blocks;
-            for (int a = 0; a < T; ++a) {
-              if (p[0][a] | p[1][a] | p[2][a]) break;
-              --left;
-            }
-            for (int a = T - 1; a >= 0; --a) {
-              if (p[0][a] | p[1][a] | p[2][a]) break;
-              ++right;
-            }
-          }
-          for (int w = left; w < right; ++w) {
+          auto lr = np[i].getLeftRight();
+          for (int w = lr.first, ws = lr.second; w < ws; ++w) {
             Field c = field;
             if (c.next(np[i], w)) {
               if (i == 0) {
@@ -603,7 +587,8 @@ void execute() {
                   obs = c.obs;
                   ti = i;
                 }
-              } else {
+              } else if (i < depth) {
+                c.calcValue();
                 search[i + 1].push(c);
               }
             }
