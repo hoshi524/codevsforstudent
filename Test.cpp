@@ -15,9 +15,10 @@ static const int WALL = -1;
 static const int OBSTACLE = S + 1;
 static const int target = 80;
 static const int tasksize = 70;
+static const int width = 10;
 static const int minute = 60 * 1000;
 #ifdef NDEBUG
-static const int node = 1100;  // prod
+static const int node = 1000;  // prod
 #else
 static const int node = 100;  // test
 #endif
@@ -427,7 +428,7 @@ class Field {
       }
     }
     constexpr int maxdepth = 16;
-    constexpr int mindepth = 5;
+    constexpr int mindepth = 6;
     int depth = maxdepth - block / 6;
     if (depth > (HW - allblock) / 3) depth = (HW - allblock) / 3;
     if (depth < mindepth) depth = mindepth;
@@ -502,12 +503,12 @@ bool checkOpp(const int obs) {
   for (int t = turn + 1, o = obs; t < N; ++t) {
     if (o) o -= np[t - turn].fill(o);
   }
-  int depth = min(opField.calcDepth(), N - turn);
+  int depth = min(8, N - turn);
   priority_queue<Field> search[depth + 1];
   search[0].push(opField);
   for (int n = 0; n < (node << 1); ++n) {
     for (int i = 0; i <= depth; ++i) {
-      for (int j = 0; j < 10 && !search[i].empty(); ++j) {
+      for (int j = 0; j < width && !search[i].empty(); ++j) {
         ++n;
         Field field = search[i].top();
         search[i].pop();
@@ -560,12 +561,12 @@ void execute() {
     }
   }
   int value = INT_MIN, pos, rot, ti = -1, obs;
-  int depth = min(myField.calcDepth(), N - turn), n;
+  int depth = min(myField.calcDepth(), N - turn);
   priority_queue<Field> search[depth + 1];
   search[0].push(myField);
-  for (n = 0; n < (node << (time > minute ? 2 : 0)); ++n) {
+  for (int n = 0, ns = (node * (time > minute ? 5 : 1)); n < ns; ++n) {
     for (int i = 0; i <= depth; ++i) {
-      for (int j = 0; j < 10 && !search[i].empty(); ++j) {
+      for (int j = 0; j < width && !search[i].empty(); ++j) {
         ++n;
         Field field = search[i].top();
         search[i].pop();
@@ -599,7 +600,6 @@ void execute() {
     }
   }
   printf("%d %d\n", pos, rot);
-  // cerr << n << endl;
   if (ti == 0 && obs > 0) {
     cerr << "turn : obs  " << turn << " : " << obs << endl;
   }
